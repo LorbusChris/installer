@@ -23,22 +23,23 @@ data "ignition_file" "hostname" {
 data "ignition_file" "static_ip" {
   count = "${var.instance_count}"
 
-  path       = "/etc/sysconfig/network-scripts/ifcfg-ens192"
-  mode       = "420"
+  path       = "/etc/NetworkManager/system-connections/eth0"
+  mode       = "0600"
 
   content {
     content = <<EOF
-TYPE=Ethernet
-BOOTPROTO=none
-NAME=ens192
-DEVICE=ens192
-ONBOOT=yes
-IPADDR=${local.ip_addresses[count.index]}
-PREFIX=${local.mask}
-GATEWAY=${local.gw}
-DOMAIN=${var.cluster_domain}
-DNS1=1.1.1.1
-DNS2=9.9.9.9
+[connection]
+id=Wired connnection 1
+uuid=27afa607-ee36-43f0-b8c3-9d245cdc4bb3
+type=802-3-ethernet
+interface-name=eth0
+autoconnect=true
+
+[ipv4]
+method=manual
+dns=1.1.1.1;9.9.9.9
+addresses=${local.ip_addresses[count.index]}/24
+gateway=${local.gw}
 EOF
   }
 }
@@ -46,14 +47,18 @@ EOF
 data "ignition_systemd_unit" "restart" {
   count = "${var.instance_count}"
 
-  name = "restart.service"
+  name = "static-ip.service"
 
   content = <<EOF
 [Unit]
 ConditionFirstBoot=yes
+Before=machine-config-daemon-pull.service
+After=network.target
 [Service]
-Type=idle
-ExecStart=/sbin/reboot
+Type=oneshot
+ExecStart=/usr/bin/nmcli device disconnect eth0
+ExecStart=/usr/bin/systemctl restart NetworkManager
+ExecStart=/usr/bin/nmcli device connect eth0
 [Install]
 WantedBy=multi-user.target
 EOF
