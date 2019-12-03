@@ -13,8 +13,8 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform/httpclient"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
 
@@ -37,7 +37,7 @@ type ArmClient struct {
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
 	setUserAgent(client)
 	client.Authorizer = auth
-	client.Sender = azure.BuildSender()
+	client.Sender = sender.BuildSender("terraform-provider-azurerm-client-sender")
 	client.SkipResourceProviderRegistration = true
 	client.PollingDuration = 60 * time.Minute
 }
@@ -75,21 +75,25 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		usingServicePrincipal: c.AuthenticatedAsAServicePrincipal,
 	}
 
-	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
+	adalOAuthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
 	if err != nil {
 		return nil, err
 	}
 
+	newOAuthConfig := &authentication.OAuthConfig{
+		OAuth: adalOAuthConfig,
+	}
+
 	// OAuthConfigForTenant returns a pointer, which can be nil.
-	if oauthConfig == nil {
+	if newOAuthConfig.OAuth == nil {
 		return nil, fmt.Errorf("unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
-	sender := azure.BuildSender()
+	sender := sender.BuildSender("terraform-provider-azurerm-sender")
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := c.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
+	auth, err := c.GetAuthorizationToken(sender, newOAuthConfig, env.TokenAudience)
 	if err != nil {
 		return nil, err
 	}
