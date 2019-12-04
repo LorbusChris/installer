@@ -82,11 +82,17 @@ require (
 replace (
 	github.com/Azure/azure-sdk-for-go => github.com/hashicorp/azure-sdk-for-go v36.2.2-hashi+incompatible
 	github.com/coreos/ignition => github.com/coreos/ignition v0.28.0
+	github.com/go-critic/go-critic v0.0.0-20181204210945-ee9bf5809ead => github.com/go-critic/go-critic v0.3.5-0.20190526074819-1df300866540
 	github.com/go-log/log => github.com/go-log/log v0.1.1-0.20181211034820-a514cf01a3eb
+	github.com/golangci/errcheck v0.0.0-20181003203344-ef45e06d44b6 => github.com/golangci/errcheck v0.0.0-20181223084120-ef45e06d44b6
+	github.com/golangci/go-tools v0.0.0-20180109140146-af6baa5dc196 => github.com/golangci/go-tools v0.0.0-20190318055746-e32c54105b7c
+	github.com/golangci/gofmt v0.0.0-20181105071733-0b8337e80d98 => github.com/golangci/gofmt v0.0.0-20181222123516-0b8337e80d98
+	github.com/golangci/gosec v0.0.0-20180901114220-66fb7fc33547 => github.com/golangci/gosec v0.0.0-20190211064107-66fb7fc33547
 	github.com/metal3-io/baremetal-operator => github.com/openshift/baremetal-operator v0.0.0-20191017022404-1f983453b8d3
 	github.com/metal3-io/cluster-api-provider-baremetal => github.com/openshift/cluster-api-provider-baremetal v0.0.0-20190821174549-a2a477909c1d
 	github.com/terraform-providers/terraform-provider-aws => github.com/terraform-providers/terraform-provider-aws v0.0.0-20190510001811-4b894dbf13f6
 	github.com/terraform-providers/terraform-provider-ignition => github.com/LorbusChris/terraform-provider-ignition v1.0.2-0.20191203224725-42fde74592ae
+	golang.org/x/tools v0.0.0-20190314010720-f0bfdbff1f9c => golang.org/x/tools v0.0.0-20191204011308-9611592c72f6
 	golang.org/x/tools v0.0.0-20191002234911-9ade4c73f2af => golang.org/x/tools v0.0.0-20191204011308-9611592c72f6
 	k8s.io/api => k8s.io/api v0.0.0-20190918155943-95b840bb6a1f
 	k8s.io/apiextensions-apiserver => github.com/openshift/kubernetes-apiextensions-apiserver v0.0.0-20190918161926-8f644eb6e783
@@ -110,7 +116,9 @@ replace (
 	k8s.io/legacy-cloud-providers => github.com/openshift/kubernetes-legacy-cloud-providers v0.0.0-20190918163543-cfa506e53441
 	k8s.io/metrics => github.com/openshift/kubernetes-metrics v0.0.0-20190918162108-227c654b2546
 	k8s.io/sample-apiserver => github.com/openshift/kubernetes-sample-apiserver v0.0.0-20190918161442-d4c9c65c82af
+	mvdan.cc/unparam v0.0.0-20190124213536-fbb59629db34 => mvdan.cc/unparam v0.0.0-20190209190245-fbb59629db34
 	sigs.k8s.io/cluster-api-provider-aws => github.com/openshift/cluster-api-provider-aws v0.2.1-0.20191129101643-987ca1c365a0
 	sigs.k8s.io/cluster-api-provider-azure => github.com/openshift/cluster-api-provider-azure v0.1.0-alpha.3.0.20191129104835-925b15bc2235
 	sigs.k8s.io/cluster-api-provider-openstack => github.com/openshift/cluster-api-provider-openstack v0.0.0-20191030154608-c14315ec7102
+
 )
