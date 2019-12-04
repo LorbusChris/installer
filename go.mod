@@ -9,7 +9,6 @@ require (
 	github.com/Azure/go-autorest/autorest/adal v0.8.1-0.20191028180845-3492b2aff503
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.0
 	github.com/Azure/go-autorest/autorest/to v0.3.0
-	github.com/Netflix/go-expect v0.0.0-20180615182759-c93bf25de8e8
 	github.com/apparentlymart/go-cidr v1.0.1
 	github.com/awalterschulze/gographviz v0.0.0-20170410065617-c84395e536e1
 	github.com/aws/aws-sdk-go v1.25.3
@@ -26,14 +25,13 @@ require (
 	github.com/hashicorp/logutils v1.0.0
 	github.com/hashicorp/terraform v0.12.17
 	github.com/hashicorp/terraform-plugin-sdk v1.3.0
-	github.com/hinshun/vt10x v0.0.0-20180616224451-1954e6464174
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/libvirt/libvirt-go v5.0.0+incompatible
 	github.com/metal3-io/baremetal-operator v0.0.0
 	github.com/metal3-io/cluster-api-provider-baremetal v0.0.0
 	github.com/mitchellh/cli v1.0.0
-	github.com/onsi/ginkgo v1.10.3
-	github.com/onsi/gomega v1.7.1
+	github.com/onsi/ginkgo v1.10.3 // indirect
+	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/openshift-metal3/terraform-provider-ironic v0.1.8
 	github.com/openshift/api v3.9.1-0.20191014195513-c9253efc14f4+incompatible
 	github.com/openshift/client-go v0.0.0-20191001081553-3b0e988f8cb0
@@ -70,7 +68,7 @@ require (
 	google.golang.org/api v0.13.0
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	gopkg.in/ini.v1 v1.42.0
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.2.7 // indirect
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible

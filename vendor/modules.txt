@@ -136,8 +136,6 @@ github.com/ChrisTrenkamp/goxpath/lexer
 github.com/ChrisTrenkamp/goxpath/parser/pathexpr
 github.com/ChrisTrenkamp/goxpath/xconst
 github.com/ChrisTrenkamp/goxpath/tree/xmltree/xmlnode
-# github.com/Netflix/go-expect v0.0.0-20180615182759-c93bf25de8e8
-github.com/Netflix/go-expect
 # github.com/agext/levenshtein v1.2.2
 github.com/agext/levenshtein
 # github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083
@@ -406,8 +404,6 @@ github.com/coreos/ignition/config/v1
 github.com/coreos/ignition/config/v1/types
 # github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
 github.com/coreos/pkg/capnslog
-# github.com/creack/pty v1.1.9
-github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -836,16 +832,8 @@ github.com/hashicorp/vault/helper/jsonutil
 github.com/hashicorp/vault/helper/compressutil
 # github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d
 github.com/hashicorp/yamux
-# github.com/hinshun/vt10x v0.0.0-20180616224451-1954e6464174
-github.com/hinshun/vt10x
 # github.com/hooklift/iso9660 v1.0.0
 github.com/hooklift/iso9660
-# github.com/hpcloud/tail v1.0.0
-github.com/hpcloud/tail
-github.com/hpcloud/tail/ratelimiter
-github.com/hpcloud/tail/util
-github.com/hpcloud/tail/watch
-github.com/hpcloud/tail/winfile
 # github.com/imdario/mergo v0.3.7
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
@@ -888,8 +876,6 @@ github.com/keybase/go-crypto/ed25519/internal/edwards25519
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/kr/fs v0.1.0
 github.com/kr/fs
-# github.com/kr/pty v1.1.8
-github.com/kr/pty
 # github.com/kubernetes-sigs/aws-iam-authenticator v0.3.1-0.20181019024009-82544ec86140
 github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token
 github.com/kubernetes-sigs/aws-iam-authenticator/pkg/arn
@@ -953,38 +939,6 @@ github.com/modern-go/reflect2
 github.com/nu7hatch/gouuid
 # github.com/oklog/run v1.0.0
 github.com/oklog/run
-# github.com/onsi/ginkgo v1.10.3
-github.com/onsi/ginkgo
-github.com/onsi/ginkgo/config
-github.com/onsi/ginkgo/internal/codelocation
-github.com/onsi/ginkgo/internal/failer
-github.com/onsi/ginkgo/internal/remote
-github.com/onsi/ginkgo/internal/suite
-github.com/onsi/ginkgo/internal/testingtproxy
-github.com/onsi/ginkgo/internal/writer
-github.com/onsi/ginkgo/reporters
-github.com/onsi/ginkgo/reporters/stenographer
-github.com/onsi/ginkgo/reporters/stenographer/support/go-colorable
-github.com/onsi/ginkgo/types
-github.com/onsi/ginkgo/internal/spec_iterator
-github.com/onsi/ginkgo/internal/containernode
-github.com/onsi/ginkgo/internal/leafnodes
-github.com/onsi/ginkgo/internal/spec
-github.com/onsi/ginkgo/internal/specrunner
-github.com/onsi/ginkgo/reporters/stenographer/support/go-isatty
-# github.com/onsi/gomega v1.7.1
-github.com/onsi/gomega
-github.com/onsi/gomega/internal/assertion
-github.com/onsi/gomega/internal/asyncassertion
-github.com/onsi/gomega/internal/testingtsupport
-github.com/onsi/gomega/matchers
-github.com/onsi/gomega/types
-github.com/onsi/gomega/internal/oraclematcher
-github.com/onsi/gomega/format
-github.com/onsi/gomega/matchers/support/goraph/bipartitegraph
-github.com/onsi/gomega/matchers/support/goraph/edge
-github.com/onsi/gomega/matchers/support/goraph/node
-github.com/onsi/gomega/matchers/support/goraph/util
 # github.com/opencontainers/go-digest v1.0.0-rc1
 github.com/opencontainers/go-digest
 # github.com/opencontainers/image-spec v1.0.1
@@ -1291,16 +1245,16 @@ golang.org/x/text/encoding/internal
 golang.org/x/text/encoding/internal/identifier
 golang.org/x/text/transform
 golang.org/x/text/encoding/htmlindex
+golang.org/x/text/language
 golang.org/x/text/encoding/japanese
 golang.org/x/text/encoding/korean
 golang.org/x/text/encoding/simplifiedchinese
 golang.org/x/text/encoding/traditionalchinese
 golang.org/x/text/encoding/unicode
-golang.org/x/text/language
-golang.org/x/text/internal/utf8internal
-golang.org/x/text/runes
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/utf8internal
+golang.org/x/text/runes
 golang.org/x/text/internal/tag
 # golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 golang.org/x/time/rate
@@ -1447,14 +1401,10 @@ google.golang.org/grpc/credentials/alts/internal/conn
 gopkg.in/AlecAivazis/survey.v1
 gopkg.in/AlecAivazis/survey.v1/core
 gopkg.in/AlecAivazis/survey.v1/terminal
-# gopkg.in/fsnotify.v1 v1.4.7
-gopkg.in/fsnotify.v1
 # gopkg.in/inf.v0 v0.9.1
 gopkg.in/inf.v0
 # gopkg.in/ini.v1 v1.42.0
 gopkg.in/ini.v1
-# gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
-gopkg.in/tomb.v1
 # gopkg.in/yaml.v2 v2.2.7
 gopkg.in/yaml.v2
 # honnef.co/go/tools v0.0.1-2019.2.3
