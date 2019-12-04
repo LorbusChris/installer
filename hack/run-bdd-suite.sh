@@ -7,7 +7,7 @@ if [ "$IS_CONTAINER" != "" ]; then
   
   TAGS=libvirt ./hack/build.sh
   GOPATH_ORI=$GOPATH
-  export GOPATH=$GOPATH:/go/src/github.com/openshift/installer/vendor
+  export GOPATH=$GOPATH:/go/src/github.com/openshift/installer/tests/bdd-smoke/vendor
   go build -o "bin/ginkgo" github.com/onsi/ginkgo/ginkgo
   export GOPATH=$GOPATH_ORI
   ./bin/ginkgo "${@}"
