@@ -1068,7 +1068,7 @@ github.com/stoewer/go-strcase
 github.com/stretchr/testify/assert
 # github.com/svanharmelen/jsonapi v0.0.0-20180618144545-0c0828c3f16d
 github.com/svanharmelen/jsonapi
-# github.com/terraform-providers/terraform-provider-aws v1.60.0 => github.com/terraform-providers/terraform-provider-aws v0.0.0-20190510001811-4b894dbf13f6
+# github.com/terraform-providers/terraform-provider-aws v0.0.0-00010101000000-000000000000 => github.com/terraform-providers/terraform-provider-aws v0.0.0-20190510001811-4b894dbf13f6
 github.com/terraform-providers/terraform-provider-aws/aws
 # github.com/terraform-providers/terraform-provider-azurerm v1.37.0
 github.com/terraform-providers/terraform-provider-azurerm/azurerm
@@ -1638,10 +1638,10 @@ k8s.io/utils/pointer
 k8s.io/utils/buffer
 k8s.io/utils/trace
 k8s.io/utils/integer
-# sigs.k8s.io/cluster-api-provider-aws v0.0.0 => github.com/openshift/cluster-api-provider-aws v0.2.1-0.20191129101643-987ca1c365a0
+# sigs.k8s.io/cluster-api-provider-aws v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-api-provider-aws v0.2.1-0.20191129101643-987ca1c365a0
 sigs.k8s.io/cluster-api-provider-aws/pkg/apis/awsproviderconfig/v1beta1
 sigs.k8s.io/cluster-api-provider-aws/pkg/apis
-# sigs.k8s.io/cluster-api-provider-azure v0.0.0 => github.com/openshift/cluster-api-provider-azure v0.1.0-alpha.3.0.20191129104835-925b15bc2235
+# sigs.k8s.io/cluster-api-provider-azure v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-api-provider-azure v0.1.0-alpha.3.0.20191129104835-925b15bc2235
 sigs.k8s.io/cluster-api-provider-azure/pkg/apis/azureprovider/v1beta1
 sigs.k8s.io/cluster-api-provider-azure/pkg/apis
 sigs.k8s.io/cluster-api-provider-azure/pkg/apis/azureprovider/v1alpha1

@@ -52,7 +52,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/stoewer/go-strcase v1.1.0 // indirect
 	github.com/stretchr/testify v1.4.0
-	github.com/terraform-providers/terraform-provider-aws v1.60.0
+	github.com/terraform-providers/terraform-provider-aws v0.0.0-00010101000000-000000000000
 	github.com/terraform-providers/terraform-provider-azurerm v1.37.0
 	github.com/terraform-providers/terraform-provider-google v0.0.0-20191204001720-5937ed8454f5
 	github.com/terraform-providers/terraform-provider-ignition v1.1.0
@@ -76,8 +76,8 @@ require (
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/utils v0.0.0-20191114184206-e782cd3c129f
-	sigs.k8s.io/cluster-api-provider-aws v0.0.0
-	sigs.k8s.io/cluster-api-provider-azure v0.0.0
+	sigs.k8s.io/cluster-api-provider-aws v0.0.0-00010101000000-000000000000
+	sigs.k8s.io/cluster-api-provider-azure v0.0.0-00010101000000-000000000000
 	sigs.k8s.io/cluster-api-provider-openstack v0.0.0
 )
 
