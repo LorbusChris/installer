@@ -1,7 +1,8 @@
 #!/bin/sh
 
 if [ "$IS_CONTAINER" != "" ]; then
-  go mod vendor
+  export GO111MODULE=on
+  GOPROXY=https://proxy.golang.org go mod vendor
   go mod verify
   git diff --exit-code
 else
