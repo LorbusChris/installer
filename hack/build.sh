@@ -21,6 +21,7 @@ TAGS="${TAGS:-}"
 OUTPUT="${OUTPUT:-bin/openshift-install}"
 export CGO_ENABLED=0
 export GO111MODULE=on
+export GOPROXY=https://proxy.golang.org
 
 case "${MODE}" in
 release)
