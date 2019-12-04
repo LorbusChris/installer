@@ -29,7 +29,7 @@ release)
 	TAGS="${TAGS} release"
 	if test "${SKIP_GENERATION}" != y
 	then
-		go generate ./data
+		go generate -mod=vendor ./data
 	fi
 	;;
 dev)
