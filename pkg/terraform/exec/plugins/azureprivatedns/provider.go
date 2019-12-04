@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/hashicorp/terraform/helper/mutexkv"
 )
 
 // Provider returns a terraform.ResourceProvider.

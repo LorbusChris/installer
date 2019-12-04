@@ -4,7 +4,7 @@ package plugins
 
 import (
 	"github.com/dmacvicar/terraform-provider-libvirt/libvirt"
-	"github.com/hashicorp/terraform-plugin-sdk/plugin"
+	"github.com/hashicorp/terraform/plugin"
 )
 
 func init() {
