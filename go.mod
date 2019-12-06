@@ -24,7 +24,7 @@ require (
 	github.com/hashicorp/go-plugin v1.0.1
 	github.com/hashicorp/logutils v1.0.0
 	github.com/hashicorp/terraform v0.12.17
-	github.com/hashicorp/terraform-plugin-sdk v1.3.0
+	github.com/hashicorp/terraform-plugin-sdk v1.4.0
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/libvirt/libvirt-go v5.0.0+incompatible
 	github.com/metal3-io/baremetal-operator v0.0.0
@@ -56,7 +56,7 @@ require (
 	github.com/terraform-providers/terraform-provider-ignition v1.1.0
 	github.com/terraform-providers/terraform-provider-local v1.4.0
 	github.com/terraform-providers/terraform-provider-openstack v1.24.0
-	github.com/terraform-providers/terraform-provider-random v2.0.0+incompatible
+	github.com/terraform-providers/terraform-provider-random v0.0.0-20190925210718-83518d96ae4f
 	github.com/vincent-petithory/dataurl v0.0.0-20160330182126-9a301d65acbb
 	golang.org/x/crypto v0.0.0-20191202143827-86a70503ff7e
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f
