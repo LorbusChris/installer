@@ -83,6 +83,7 @@ func TestGetDefaultInstanceClass(t *testing.T) {
 		"EU (Stockholm)":             "eu-north-1",
 		"Middle East (Bahrain)":      "me-south-1",
 		"South America (Sao Paulo)":  "sa-east-1",
+		"US West (Los Angeles)":      "us-west-2",
 	}
 
 	for location, classes := range pricingInstanceClasses {
