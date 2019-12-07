@@ -1456,16 +1456,7 @@ type CsvOptions struct {
 	// SkipLeadingRows: [Optional] The number of rows at the top of a CSV
 	// file that BigQuery will skip when reading the data. The default value
 	// is 0. This property is useful if you have header rows in the file
-	// that should be skipped. When autodetect is on, the behavior is the
-	// following: * skipLeadingRows unspecified - Autodetect tries to detect
-	// headers in the first row. If they are not detected, the row is read
-	// as data. Otherwise data is read starting from the second row. *
-	// skipLeadingRows is 0 - Instructs autodetect that there are no headers
-	// and data should be read starting from the first row. *
-	// skipLeadingRows = N > 0 - Autodetect skips N-1 rows and tries to
-	// detect headers in row N. If headers are not detected, row N is just
-	// skipped. Otherwise row N is used to extract column names for the
-	// detected schema.
+	// that should be skipped.
 	SkipLeadingRows int64 `json:"skipLeadingRows,omitempty,string"`
 
 	// ForceSendFields is a list of field names (e.g. "AllowJaggedRows") to
@@ -1488,40 +1479,6 @@ type CsvOptions struct {
 
 func (s *CsvOptions) MarshalJSON() ([]byte, error) {
 	type NoMethod CsvOptions
-	raw := NoMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
-}
-
-// DataSplitResult: Data split result. This contains references to the
-// training and evaluation
-// data tables that were used to train the model.
-type DataSplitResult struct {
-	// EvaluationTable: Table reference of the evaluation data after split.
-	EvaluationTable *TableReference `json:"evaluationTable,omitempty"`
-
-	// TrainingTable: Table reference of the training data after split.
-	TrainingTable *TableReference `json:"trainingTable,omitempty"`
-
-	// ForceSendFields is a list of field names (e.g. "EvaluationTable") to
-	// unconditionally include in API requests. By default, fields with
-	// empty values are omitted from API requests. However, any non-pointer,
-	// non-interface field appearing in ForceSendFields will be sent to the
-	// server regardless of whether the field is empty or not. This may be
-	// used to include empty fields in Patch requests.
-	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "EvaluationTable") to
-	// include in API requests with the JSON null value. By default, fields
-	// with empty values are omitted from API requests. However, any field
-	// with an empty value appearing in NullFields will be sent to the
-	// server as null. It is an error if a field in this list has a
-	// non-empty value. This may be used to include null fields in Patch
-	// requests.
-	NullFields []string `json:"-"`
-}
-
-func (s *DataSplitResult) MarshalJSON() ([]byte, error) {
-	type NoMethod DataSplitResult
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -3875,12 +3832,11 @@ type ListRoutinesResponse struct {
 	// NextPageToken: A token to request the next page of results.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
-	// Routines: Routines in the requested dataset. Unless read_mask is set
-	// in the request,
-	// only the following fields are populated:
+	// Routines: Routines in the requested dataset. Only the following
+	// fields are populated:
 	// etag, project_id, dataset_id, routine_id, routine_type,
 	// creation_time,
-	// last_modified_time, and language.
+	// last_modified_time, language.
 	Routines []*Routine `json:"routines,omitempty"`
 
 	// ServerResponse contains the HTTP response code and headers from the
@@ -3947,11 +3903,6 @@ func (s *LocationMetadata) MarshalJSON() ([]byte, error) {
 }
 
 type MaterializedViewDefinition struct {
-	// EnableRefresh: [Optional] [TrustedTester] Enable automatic refresh of
-	// the materialized view when the base table is updated. The default
-	// value is "true".
-	EnableRefresh bool `json:"enableRefresh,omitempty"`
-
 	// LastRefreshTime: [Output-only] [TrustedTester] The time when this
 	// materialized view was last modified, in milliseconds since the epoch.
 	LastRefreshTime int64 `json:"lastRefreshTime,omitempty,string"`
@@ -3959,12 +3910,7 @@ type MaterializedViewDefinition struct {
 	// Query: [Required] A query whose result is persisted.
 	Query string `json:"query,omitempty"`
 
-	// RefreshIntervalMs: [Optional] [TrustedTester] The maximum frequency
-	// at which this materialized view will be refreshed. The default value
-	// is "1800000" (30 minutes).
-	RefreshIntervalMs int64 `json:"refreshIntervalMs,omitempty,string"`
-
-	// ForceSendFields is a list of field names (e.g. "EnableRefresh") to
+	// ForceSendFields is a list of field names (e.g. "LastRefreshTime") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -3972,12 +3918,13 @@ type MaterializedViewDefinition struct {
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "EnableRefresh") to include
-	// in API requests with the JSON null value. By default, fields with
-	// empty values are omitted from API requests. However, any field with
-	// an empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
+	// NullFields is a list of field names (e.g. "LastRefreshTime") to
+	// include in API requests with the JSON null value. By default, fields
+	// with empty values are omitted from API requests. However, any field
+	// with an empty value appearing in NullFields will be sent to the
+	// server as null. It is an error if a field in this list has a
+	// non-empty value. This may be used to include null fields in Patch
+	// requests.
 	NullFields []string `json:"-"`
 }
 
@@ -5382,9 +5329,9 @@ type Table struct {
 	// should be specified.
 	RangePartitioning *RangePartitioning `json:"rangePartitioning,omitempty"`
 
-	// RequirePartitionFilter: [Optional] If set to true, queries over this
-	// table require a partition filter that can be used for partition
-	// elimination to be specified.
+	// RequirePartitionFilter: [Beta] [Optional] If set to true, queries
+	// over this table require a partition filter that can be used for
+	// partition elimination to be specified.
 	RequirePartitionFilter bool `json:"requirePartitionFilter,omitempty"`
 
 	// Schema: [Optional] Describes the schema of this table.
@@ -5687,8 +5634,6 @@ type TableFieldSchema struct {
 	// letter or underscore. The maximum length is 128 characters.
 	Name string `json:"name,omitempty"`
 
-	PolicyTags *TableFieldSchemaPolicyTags `json:"policyTags,omitempty"`
-
 	// Type: [Required] The field data type. Possible values include STRING,
 	// BYTES, INTEGER, INT64 (same as INTEGER), FLOAT, FLOAT64 (same as
 	// FLOAT), BOOLEAN, BOOL (same as BOOLEAN), TIMESTAMP, DATE, TIME,
@@ -5746,35 +5691,6 @@ type TableFieldSchemaCategories struct {
 
 func (s *TableFieldSchemaCategories) MarshalJSON() ([]byte, error) {
 	type NoMethod TableFieldSchemaCategories
-	raw := NoMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
-}
-
-type TableFieldSchemaPolicyTags struct {
-	// Names: A list of category resource names. For example,
-	// "projects/1/location/eu/taxonomies/2/policyTags/3". At most 1 policy
-	// tag is allowed.
-	Names []string `json:"names,omitempty"`
-
-	// ForceSendFields is a list of field names (e.g. "Names") to
-	// unconditionally include in API requests. By default, fields with
-	// empty values are omitted from API requests. However, any non-pointer,
-	// non-interface field appearing in ForceSendFields will be sent to the
-	// server regardless of whether the field is empty or not. This may be
-	// used to include empty fields in Patch requests.
-	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Names") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
-}
-
-func (s *TableFieldSchemaPolicyTags) MarshalJSON() ([]byte, error) {
-	type NoMethod TableFieldSchemaPolicyTags
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -5849,10 +5765,6 @@ type TableListTables struct {
 	// Labels: The labels associated with this table. You can use these to
 	// organize and group your tables.
 	Labels map[string]string `json:"labels,omitempty"`
-
-	// RangePartitioning: The range partitioning specification for this
-	// table, if configured.
-	RangePartitioning *RangePartitioning `json:"rangePartitioning,omitempty"`
 
 	// TableReference: A reference uniquely identifying the table.
 	TableReference *TableReference `json:"tableReference,omitempty"`
@@ -6132,7 +6044,6 @@ type TrainingOptions struct {
 	//   "CUSTOM" - Initializes the centroids using data specified
 	// in
 	// kmeans_initialization_column.
-	//   "KMEANS_PLUS_PLUS" - Initializes with kmeans++.
 	KmeansInitializationMethod string `json:"kmeansInitializationMethod,omitempty"`
 
 	// L1Regularization: L1 regularization coefficient.
@@ -6253,11 +6164,6 @@ func (s *TrainingOptions) UnmarshalJSON(data []byte) error {
 // TrainingRun: Information about a single training query run for the
 // model.
 type TrainingRun struct {
-	// DataSplitResult: Data split result of the training run. Only set when
-	// the input data is
-	// actually split.
-	DataSplitResult *DataSplitResult `json:"dataSplitResult,omitempty"`
-
 	// EvaluationMetrics: The evaluation metrics over training/eval data
 	// that were computed at the
 	// end of training.
@@ -6275,15 +6181,15 @@ type TrainingRun struct {
 	// user specified and default options that were used.
 	TrainingOptions *TrainingOptions `json:"trainingOptions,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "DataSplitResult") to
-	// unconditionally include in API requests. By default, fields with
+	// ForceSendFields is a list of field names (e.g. "EvaluationMetrics")
+	// to unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "DataSplitResult") to
+	// NullFields is a list of field names (e.g. "EvaluationMetrics") to
 	// include in API requests with the JSON null value. By default, fields
 	// with empty values are omitted from API requests. However, any field
 	// with an empty value appearing in NullFields will be sent to the
@@ -6428,7 +6334,7 @@ func (c *DatasetsDeleteCall) Header() http.Header {
 
 func (c *DatasetsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6555,7 +6461,7 @@ func (c *DatasetsGetCall) Header() http.Header {
 
 func (c *DatasetsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6699,7 +6605,7 @@ func (c *DatasetsInsertCall) Header() http.Header {
 
 func (c *DatasetsInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6879,7 +6785,7 @@ func (c *DatasetsListCall) Header() http.Header {
 
 func (c *DatasetsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7062,7 +6968,7 @@ func (c *DatasetsPatchCall) Header() http.Header {
 
 func (c *DatasetsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7213,7 +7119,7 @@ func (c *DatasetsUpdateCall) Header() http.Header {
 
 func (c *DatasetsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7371,7 +7277,7 @@ func (c *JobsCancelCall) Header() http.Header {
 
 func (c *JobsCancelCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7536,7 +7442,7 @@ func (c *JobsGetCall) Header() http.Header {
 
 func (c *JobsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7735,7 +7641,7 @@ func (c *JobsGetQueryResultsCall) Header() http.Header {
 
 func (c *JobsGetQueryResultsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7969,7 +7875,7 @@ func (c *JobsInsertCall) Header() http.Header {
 
 func (c *JobsInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7984,7 +7890,7 @@ func (c *JobsInsertCall) doRequest(alt string) (*http.Response, error) {
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "projects/{projectId}/jobs")
 	if c.mediaInfo_ != nil {
-		urls = googleapi.ResolveRelative(c.s.BasePath, "/upload/bigquery/v2/projects/{projectId}/jobs")
+		urls = strings.Replace(urls, "https://www.googleapis.com/", "https://www.googleapis.com/upload/", 1)
 		c.urlParams_.Set("uploadType", c.mediaInfo_.UploadType())
 	}
 	if body == nil {
@@ -8236,7 +8142,7 @@ func (c *JobsListCall) Header() http.Header {
 
 func (c *JobsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8456,7 +8362,7 @@ func (c *JobsQueryCall) Header() http.Header {
 
 func (c *JobsQueryCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8599,7 +8505,7 @@ func (c *ModelsDeleteCall) Header() http.Header {
 
 func (c *ModelsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8735,7 +8641,7 @@ func (c *ModelsGetCall) Header() http.Header {
 
 func (c *ModelsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8920,7 +8826,7 @@ func (c *ModelsListCall) Header() http.Header {
 
 func (c *ModelsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9103,7 +9009,7 @@ func (c *ModelsPatchCall) Header() http.Header {
 
 func (c *ModelsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9272,7 +9178,7 @@ func (c *ProjectsGetServiceAccountCall) Header() http.Header {
 
 func (c *ProjectsGetServiceAccountCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9430,7 +9336,7 @@ func (c *ProjectsListCall) Header() http.Header {
 
 func (c *ProjectsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9588,7 +9494,7 @@ func (c *RoutinesDeleteCall) Header() http.Header {
 
 func (c *RoutinesDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9687,6 +9593,14 @@ func (r *RoutinesService) Get(projectId string, datasetId string, routineId stri
 	return c
 }
 
+// FieldMask sets the optional parameter "fieldMask": If set, only the
+// Routine fields in the field mask are returned in the
+// response. If unset, all Routine fields are returned.
+func (c *RoutinesGetCall) FieldMask(fieldMask string) *RoutinesGetCall {
+	c.urlParams_.Set("fieldMask", fieldMask)
+	return c
+}
+
 // Fields allows partial responses to be retrieved. See
 // https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -9724,7 +9638,7 @@ func (c *RoutinesGetCall) Header() http.Header {
 
 func (c *RoutinesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9805,6 +9719,12 @@ func (c *RoutinesGetCall) Do(opts ...googleapi.CallOption) (*Routine, error) {
 	//       "required": true,
 	//       "type": "string"
 	//     },
+	//     "fieldMask": {
+	//       "description": "If set, only the Routine fields in the field mask are returned in the\nresponse. If unset, all Routine fields are returned.",
+	//       "format": "google-fieldmask",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "projectId": {
 	//       "description": "Required. Project ID of the requested routine",
 	//       "location": "path",
@@ -9882,7 +9802,7 @@ func (c *RoutinesInsertCall) Header() http.Header {
 
 func (c *RoutinesInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10061,7 +9981,7 @@ func (c *RoutinesListCall) Header() http.Header {
 
 func (c *RoutinesListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10246,7 +10166,7 @@ func (c *RoutinesUpdateCall) Header() http.Header {
 
 func (c *RoutinesUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10410,7 +10330,7 @@ func (c *TabledataInsertAllCall) Header() http.Header {
 
 func (c *TabledataInsertAllCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10609,7 +10529,7 @@ func (c *TabledataListCall) Header() http.Header {
 
 func (c *TabledataListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10807,7 +10727,7 @@ func (c *TablesDeleteCall) Header() http.Header {
 
 func (c *TablesDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10949,7 +10869,7 @@ func (c *TablesGetCall) Header() http.Header {
 
 func (c *TablesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11108,7 +11028,7 @@ func (c *TablesInsertCall) Header() http.Header {
 
 func (c *TablesInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11281,7 +11201,7 @@ func (c *TablesListCall) Header() http.Header {
 
 func (c *TablesListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11464,7 +11384,7 @@ func (c *TablesPatchCall) Header() http.Header {
 
 func (c *TablesPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11625,7 +11545,7 @@ func (c *TablesUpdateCall) Header() http.Header {
 
 func (c *TablesUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}

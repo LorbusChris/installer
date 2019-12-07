@@ -367,42 +367,6 @@ func (s *AddonsConfig) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
-// AuthenticatorGroupsConfig: Configuration for returning group
-// information from authenticators.
-type AuthenticatorGroupsConfig struct {
-	// Enabled: Whether this cluster should return group membership
-	// lookups
-	// during authentication using a group of security groups.
-	Enabled bool `json:"enabled,omitempty"`
-
-	// SecurityGroup: The name of the security group-of-groups to be used.
-	// Only relevant
-	// if enabled = true.
-	SecurityGroup string `json:"securityGroup,omitempty"`
-
-	// ForceSendFields is a list of field names (e.g. "Enabled") to
-	// unconditionally include in API requests. By default, fields with
-	// empty values are omitted from API requests. However, any non-pointer,
-	// non-interface field appearing in ForceSendFields will be sent to the
-	// server regardless of whether the field is empty or not. This may be
-	// used to include empty fields in Patch requests.
-	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Enabled") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
-}
-
-func (s *AuthenticatorGroupsConfig) MarshalJSON() ([]byte, error) {
-	type NoMethod AuthenticatorGroupsConfig
-	raw := NoMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
-}
-
 // AutoUpgradeOptions: AutoUpgradeOptions defines the set of options for
 // the user to control how
 // the Auto Upgrades will proceed.
@@ -440,43 +404,6 @@ type AutoUpgradeOptions struct {
 
 func (s *AutoUpgradeOptions) MarshalJSON() ([]byte, error) {
 	type NoMethod AutoUpgradeOptions
-	raw := NoMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
-}
-
-// AutoprovisioningNodePoolDefaults: AutoprovisioningNodePoolDefaults
-// contains defaults for a node pool created
-// by NAP.
-type AutoprovisioningNodePoolDefaults struct {
-	// OauthScopes: Scopes that are used by NAP when creating node pools. If
-	// oauth_scopes are
-	// specified, service_account should be empty.
-	OauthScopes []string `json:"oauthScopes,omitempty"`
-
-	// ServiceAccount: The Google Cloud Platform Service Account to be used
-	// by the node VMs. If
-	// service_account is specified, scopes should be empty.
-	ServiceAccount string `json:"serviceAccount,omitempty"`
-
-	// ForceSendFields is a list of field names (e.g. "OauthScopes") to
-	// unconditionally include in API requests. By default, fields with
-	// empty values are omitted from API requests. However, any non-pointer,
-	// non-interface field appearing in ForceSendFields will be sent to the
-	// server regardless of whether the field is empty or not. This may be
-	// used to include empty fields in Patch requests.
-	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "OauthScopes") to include
-	// in API requests with the JSON null value. By default, fields with
-	// empty values are omitted from API requests. However, any field with
-	// an empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
-}
-
-func (s *AutoprovisioningNodePoolDefaults) MarshalJSON() ([]byte, error) {
-	type NoMethod AutoprovisioningNodePoolDefaults
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -659,13 +586,6 @@ type Cluster struct {
 	// in the cluster.
 	AddonsConfig *AddonsConfig `json:"addonsConfig,omitempty"`
 
-	// AuthenticatorGroupsConfig: Configuration controlling RBAC group
-	// membership information.
-	AuthenticatorGroupsConfig *AuthenticatorGroupsConfig `json:"authenticatorGroupsConfig,omitempty"`
-
-	// Autoscaling: Cluster-level autoscaling configuration.
-	Autoscaling *ClusterAutoscaling `json:"autoscaling,omitempty"`
-
 	// BinaryAuthorization: Configuration for Binary Authorization.
 	BinaryAuthorization *BinaryAuthorization `json:"binaryAuthorization,omitempty"`
 
@@ -824,7 +744,7 @@ type Cluster struct {
 	//
 	// * "logging.googleapis.com/kubernetes" - the Google Cloud
 	// Logging
-	// service with Kubernetes-native resource model
+	// service with Kubernetes-native resource model in Stackdriver
 	// * `logging.googleapis.com` - the Google Cloud Logging service.
 	// * `none` - no logs will be exported from the cluster.
 	// * if left as an empty string,`logging.googleapis.com` will be used.
@@ -860,9 +780,8 @@ type Cluster struct {
 
 	// Name: The name of this cluster. The name must be unique within this
 	// project
-	// and location (e.g. zone or region), and can be up to 40 characters
-	// with
-	// the following restrictions:
+	// and zone, and can be up to 40 characters with the following
+	// restrictions:
 	//
 	// * Lowercase letters, numbers, and hyphens only.
 	// * Must start with a letter.
@@ -986,10 +905,6 @@ type Cluster struct {
 	// notation (e.g. `1.2.3.4/29`).
 	TpuIpv4CidrBlock string `json:"tpuIpv4CidrBlock,omitempty"`
 
-	// VerticalPodAutoscaling: Cluster-level Vertical Pod Autoscaling
-	// configuration.
-	VerticalPodAutoscaling *VerticalPodAutoscaling `json:"verticalPodAutoscaling,omitempty"`
-
 	// Zone: [Output only] The name of the Google Compute
 	// Engine
 	// [zone](/compute/docs/zones#available) in which the
@@ -1025,56 +940,6 @@ func (s *Cluster) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
-// ClusterAutoscaling: ClusterAutoscaling contains global, per-cluster
-// information
-// required by Cluster Autoscaler to automatically adjust
-// the size of the cluster and create/delete
-// node pools based on the current needs.
-type ClusterAutoscaling struct {
-	// AutoprovisioningLocations: The list of Google Compute Engine
-	// [zones](/compute/docs/zones#available)
-	// in which the NodePool's nodes can be created by NAP.
-	AutoprovisioningLocations []string `json:"autoprovisioningLocations,omitempty"`
-
-	// AutoprovisioningNodePoolDefaults: AutoprovisioningNodePoolDefaults
-	// contains defaults for a node pool
-	// created by NAP.
-	AutoprovisioningNodePoolDefaults *AutoprovisioningNodePoolDefaults `json:"autoprovisioningNodePoolDefaults,omitempty"`
-
-	// EnableNodeAutoprovisioning: Enables automatic node pool creation and
-	// deletion.
-	EnableNodeAutoprovisioning bool `json:"enableNodeAutoprovisioning,omitempty"`
-
-	// ResourceLimits: Contains global constraints regarding minimum and
-	// maximum
-	// amount of resources in the cluster.
-	ResourceLimits []*ResourceLimit `json:"resourceLimits,omitempty"`
-
-	// ForceSendFields is a list of field names (e.g.
-	// "AutoprovisioningLocations") to unconditionally include in API
-	// requests. By default, fields with empty values are omitted from API
-	// requests. However, any non-pointer, non-interface field appearing in
-	// ForceSendFields will be sent to the server regardless of whether the
-	// field is empty or not. This may be used to include empty fields in
-	// Patch requests.
-	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g.
-	// "AutoprovisioningLocations") to include in API requests with the JSON
-	// null value. By default, fields with empty values are omitted from API
-	// requests. However, any field with an empty value appearing in
-	// NullFields will be sent to the server as null. It is an error if a
-	// field in this list has a non-empty value. This may be used to include
-	// null fields in Patch requests.
-	NullFields []string `json:"-"`
-}
-
-func (s *ClusterAutoscaling) MarshalJSON() ([]byte, error) {
-	type NoMethod ClusterAutoscaling
-	raw := NoMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
-}
-
 // ClusterUpdate: ClusterUpdate describes an update to the cluster.
 // Exactly one update can
 // be applied to a cluster with each request, so at most one field can
@@ -1088,9 +953,6 @@ type ClusterUpdate struct {
 	// DesiredBinaryAuthorization: The desired configuration options for the
 	// Binary Authorization feature.
 	DesiredBinaryAuthorization *BinaryAuthorization `json:"desiredBinaryAuthorization,omitempty"`
-
-	// DesiredClusterAutoscaling: Cluster-level autoscaling configuration.
-	DesiredClusterAutoscaling *ClusterAutoscaling `json:"desiredClusterAutoscaling,omitempty"`
 
 	// DesiredDatabaseEncryption: Configuration of etcd encryption.
 	DesiredDatabaseEncryption *DatabaseEncryption `json:"desiredDatabaseEncryption,omitempty"`
@@ -1122,7 +984,7 @@ type ClusterUpdate struct {
 	//
 	// * "logging.googleapis.com/kubernetes" - the Google Cloud
 	// Logging
-	// service with Kubernetes-native resource model
+	// service with Kubernetes-native resource model in Stackdriver
 	// * "logging.googleapis.com" - the Google Cloud Logging service
 	// * "none" - no logs will be exported from the cluster
 	DesiredLoggingService string `json:"desiredLoggingService,omitempty"`
@@ -1152,7 +1014,7 @@ type ClusterUpdate struct {
 	//
 	// * "monitoring.googleapis.com/kubernetes" - the Google Cloud
 	// Monitoring
-	// service with Kubernetes-native resource model
+	// service with Kubernetes-native resource model in Stackdriver
 	// * "monitoring.googleapis.com" - the Google Cloud Monitoring service
 	// * "none" - no metrics will be exported from the cluster
 	DesiredMonitoringService string `json:"desiredMonitoringService,omitempty"`
@@ -1192,10 +1054,6 @@ type ClusterUpdate struct {
 	// DesiredResourceUsageExportConfig: The desired configuration for
 	// exporting resource usage.
 	DesiredResourceUsageExportConfig *ResourceUsageExportConfig `json:"desiredResourceUsageExportConfig,omitempty"`
-
-	// DesiredVerticalPodAutoscaling: Cluster-level Vertical Pod Autoscaling
-	// configuration.
-	DesiredVerticalPodAutoscaling *VerticalPodAutoscaling `json:"desiredVerticalPodAutoscaling,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "DesiredAddonsConfig")
 	// to unconditionally include in API requests. By default, fields with
@@ -2867,9 +2725,6 @@ func (s *NodePool) MarshalJSON() ([]byte, error) {
 // required by cluster autoscaler to
 // adjust the size of the node pool to the current cluster usage.
 type NodePoolAutoscaling struct {
-	// Autoprovisioned: Can this node pool be deleted automatically.
-	Autoprovisioned bool `json:"autoprovisioned,omitempty"`
-
 	// Enabled: Is autoscaling enabled for this node pool.
 	Enabled bool `json:"enabled,omitempty"`
 
@@ -2883,7 +2738,7 @@ type NodePoolAutoscaling struct {
 	// max_node_count.
 	MinNodeCount int64 `json:"minNodeCount,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "Autoprovisioned") to
+	// ForceSendFields is a list of field names (e.g. "Enabled") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -2891,13 +2746,12 @@ type NodePoolAutoscaling struct {
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "Autoprovisioned") to
-	// include in API requests with the JSON null value. By default, fields
-	// with empty values are omitted from API requests. However, any field
-	// with an empty value appearing in NullFields will be sent to the
-	// server as null. It is an error if a field in this list has a
-	// non-empty value. This may be used to include null fields in Patch
-	// requests.
+	// NullFields is a list of field names (e.g. "Enabled") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
 	NullFields []string `json:"-"`
 }
 
@@ -3119,42 +2973,6 @@ type PrivateClusterConfig struct {
 
 func (s *PrivateClusterConfig) MarshalJSON() ([]byte, error) {
 	type NoMethod PrivateClusterConfig
-	raw := NoMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
-}
-
-// ResourceLimit: Contains information about amount of some resource in
-// the cluster.
-// For memory, value should be in GB.
-type ResourceLimit struct {
-	// Maximum: Maximum amount of the resource in the cluster.
-	Maximum int64 `json:"maximum,omitempty,string"`
-
-	// Minimum: Minimum amount of the resource in the cluster.
-	Minimum int64 `json:"minimum,omitempty,string"`
-
-	// ResourceType: Resource name "cpu", "memory" or gpu-specific string.
-	ResourceType string `json:"resourceType,omitempty"`
-
-	// ForceSendFields is a list of field names (e.g. "Maximum") to
-	// unconditionally include in API requests. By default, fields with
-	// empty values are omitted from API requests. However, any non-pointer,
-	// non-interface field appearing in ForceSendFields will be sent to the
-	// server regardless of whether the field is empty or not. This may be
-	// used to include empty fields in Patch requests.
-	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Maximum") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
-}
-
-func (s *ResourceLimit) MarshalJSON() ([]byte, error) {
-	type NoMethod ResourceLimit
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -3737,7 +3555,7 @@ type SetMonitoringServiceRequest struct {
 	//
 	// * "monitoring.googleapis.com/kubernetes" - the Google Cloud
 	// Monitoring
-	// service with Kubernetes-native resource model
+	// service with Kubernetes-native resource model in Stackdriver
 	// * "monitoring.googleapis.com" - the Google Cloud Monitoring service
 	// * "none" - no metrics will be exported from the cluster
 	MonitoringService string `json:"monitoringService,omitempty"`
@@ -4469,37 +4287,6 @@ func (s *UsableSubnetworkSecondaryRange) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
-// VerticalPodAutoscaling: VerticalPodAutoscaling contains global,
-// per-cluster information
-// required by Vertical Pod Autoscaler to automatically adjust
-// the resources of pods controlled by it.
-type VerticalPodAutoscaling struct {
-	// Enabled: Enables vertical pod autoscaling.
-	Enabled bool `json:"enabled,omitempty"`
-
-	// ForceSendFields is a list of field names (e.g. "Enabled") to
-	// unconditionally include in API requests. By default, fields with
-	// empty values are omitted from API requests. However, any non-pointer,
-	// non-interface field appearing in ForceSendFields will be sent to the
-	// server regardless of whether the field is empty or not. This may be
-	// used to include empty fields in Patch requests.
-	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Enabled") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
-}
-
-func (s *VerticalPodAutoscaling) MarshalJSON() ([]byte, error) {
-	type NoMethod VerticalPodAutoscaling
-	raw := NoMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
-}
-
 // method id "container.projects.aggregated.usableSubnetworks.list":
 
 type ProjectsAggregatedUsableSubnetworksListCall struct {
@@ -4588,7 +4375,7 @@ func (c *ProjectsAggregatedUsableSubnetworksListCall) Header() http.Header {
 
 func (c *ProjectsAggregatedUsableSubnetworksListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4790,7 +4577,7 @@ func (c *ProjectsLocationsGetServerConfigCall) Header() http.Header {
 
 func (c *ProjectsLocationsGetServerConfigCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -4935,7 +4722,7 @@ func (c *ProjectsLocationsClustersCompleteIpRotationCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersCompleteIpRotationCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5091,7 +4878,7 @@ func (c *ProjectsLocationsClustersCreateCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5270,7 +5057,7 @@ func (c *ProjectsLocationsClustersDeleteCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5456,7 +5243,7 @@ func (c *ProjectsLocationsClustersGetCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5620,7 +5407,7 @@ func (c *ProjectsLocationsClustersGetJwksCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersGetJwksCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5784,7 +5571,7 @@ func (c *ProjectsLocationsClustersListCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5929,7 +5716,7 @@ func (c *ProjectsLocationsClustersSetAddonsCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersSetAddonsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6070,7 +5857,7 @@ func (c *ProjectsLocationsClustersSetLegacyAbacCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersSetLegacyAbacCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6210,7 +5997,7 @@ func (c *ProjectsLocationsClustersSetLocationsCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersSetLocationsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6350,7 +6137,7 @@ func (c *ProjectsLocationsClustersSetLoggingCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersSetLoggingCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6490,7 +6277,7 @@ func (c *ProjectsLocationsClustersSetMaintenancePolicyCall) Header() http.Header
 
 func (c *ProjectsLocationsClustersSetMaintenancePolicyCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6634,7 +6421,7 @@ func (c *ProjectsLocationsClustersSetMasterAuthCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersSetMasterAuthCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6774,7 +6561,7 @@ func (c *ProjectsLocationsClustersSetMonitoringCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersSetMonitoringCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6914,7 +6701,7 @@ func (c *ProjectsLocationsClustersSetNetworkPolicyCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersSetNetworkPolicyCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7054,7 +6841,7 @@ func (c *ProjectsLocationsClustersSetResourceLabelsCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersSetResourceLabelsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7194,7 +6981,7 @@ func (c *ProjectsLocationsClustersStartIpRotationCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersStartIpRotationCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7334,7 +7121,7 @@ func (c *ProjectsLocationsClustersUpdateCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7474,7 +7261,7 @@ func (c *ProjectsLocationsClustersUpdateMasterCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersUpdateMasterCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7614,7 +7401,7 @@ func (c *ProjectsLocationsClustersNodePoolsCreateCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersNodePoolsCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7790,7 +7577,7 @@ func (c *ProjectsLocationsClustersNodePoolsDeleteCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersNodePoolsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7989,7 +7776,7 @@ func (c *ProjectsLocationsClustersNodePoolsGetCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersNodePoolsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8183,7 +7970,7 @@ func (c *ProjectsLocationsClustersNodePoolsListCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersNodePoolsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8335,7 +8122,7 @@ func (c *ProjectsLocationsClustersNodePoolsRollbackCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersNodePoolsRollbackCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8476,7 +8263,7 @@ func (c *ProjectsLocationsClustersNodePoolsSetAutoscalingCall) Header() http.Hea
 
 func (c *ProjectsLocationsClustersNodePoolsSetAutoscalingCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8616,7 +8403,7 @@ func (c *ProjectsLocationsClustersNodePoolsSetManagementCall) Header() http.Head
 
 func (c *ProjectsLocationsClustersNodePoolsSetManagementCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8756,7 +8543,7 @@ func (c *ProjectsLocationsClustersNodePoolsSetSizeCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersNodePoolsSetSizeCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8897,7 +8684,7 @@ func (c *ProjectsLocationsClustersNodePoolsUpdateCall) Header() http.Header {
 
 func (c *ProjectsLocationsClustersNodePoolsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9056,7 +8843,7 @@ func (c *ProjectsLocationsClustersWellKnownGetOpenidConfigurationCall) Header() 
 
 func (c *ProjectsLocationsClustersWellKnownGetOpenidConfigurationCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9188,7 +8975,7 @@ func (c *ProjectsLocationsOperationsCancelCall) Header() http.Header {
 
 func (c *ProjectsLocationsOperationsCancelCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9367,7 +9154,7 @@ func (c *ProjectsLocationsOperationsGetCall) Header() http.Header {
 
 func (c *ProjectsLocationsOperationsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9549,7 +9336,7 @@ func (c *ProjectsLocationsOperationsListCall) Header() http.Header {
 
 func (c *ProjectsLocationsOperationsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9714,7 +9501,7 @@ func (c *ProjectsZonesGetServerconfigCall) Header() http.Header {
 
 func (c *ProjectsZonesGetServerconfigCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9865,7 +9652,7 @@ func (c *ProjectsZonesClustersAddonsCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersAddonsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10024,7 +9811,7 @@ func (c *ProjectsZonesClustersCompleteIpRotationCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersCompleteIpRotationCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10197,7 +9984,7 @@ func (c *ProjectsZonesClustersCreateCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10365,7 +10152,7 @@ func (c *ProjectsZonesClustersDeleteCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10538,7 +10325,7 @@ func (c *ProjectsZonesClustersGetCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10698,7 +10485,7 @@ func (c *ProjectsZonesClustersLegacyAbacCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersLegacyAbacCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10875,7 +10662,7 @@ func (c *ProjectsZonesClustersListCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11026,7 +10813,7 @@ func (c *ProjectsZonesClustersLocationsCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersLocationsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11185,7 +10972,7 @@ func (c *ProjectsZonesClustersLoggingCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersLoggingCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11344,7 +11131,7 @@ func (c *ProjectsZonesClustersMasterCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersMasterCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11503,7 +11290,7 @@ func (c *ProjectsZonesClustersMonitoringCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersMonitoringCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11662,7 +11449,7 @@ func (c *ProjectsZonesClustersResourceLabelsCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersResourceLabelsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11821,7 +11608,7 @@ func (c *ProjectsZonesClustersSetMaintenancePolicyCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersSetMaintenancePolicyCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -11984,7 +11771,7 @@ func (c *ProjectsZonesClustersSetMasterAuthCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersSetMasterAuthCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12143,7 +11930,7 @@ func (c *ProjectsZonesClustersSetNetworkPolicyCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersSetNetworkPolicyCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12302,7 +12089,7 @@ func (c *ProjectsZonesClustersStartIpRotationCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersStartIpRotationCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12461,7 +12248,7 @@ func (c *ProjectsZonesClustersUpdateCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12623,7 +12410,7 @@ func (c *ProjectsZonesClustersNodePoolsAutoscalingCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersNodePoolsAutoscalingCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12790,7 +12577,7 @@ func (c *ProjectsZonesClustersNodePoolsCreateCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersNodePoolsCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -12959,7 +12746,7 @@ func (c *ProjectsZonesClustersNodePoolsDeleteCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersNodePoolsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13144,7 +12931,7 @@ func (c *ProjectsZonesClustersNodePoolsGetCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersNodePoolsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13328,7 +13115,7 @@ func (c *ProjectsZonesClustersNodePoolsListCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersNodePoolsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13491,7 +13278,7 @@ func (c *ProjectsZonesClustersNodePoolsRollbackCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersNodePoolsRollbackCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13660,7 +13447,7 @@ func (c *ProjectsZonesClustersNodePoolsSetManagementCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersNodePoolsSetManagementCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13829,7 +13616,7 @@ func (c *ProjectsZonesClustersNodePoolsSetSizeCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersNodePoolsSetSizeCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -13999,7 +13786,7 @@ func (c *ProjectsZonesClustersNodePoolsUpdateCall) Header() http.Header {
 
 func (c *ProjectsZonesClustersNodePoolsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -14166,7 +13953,7 @@ func (c *ProjectsZonesOperationsCancelCall) Header() http.Header {
 
 func (c *ProjectsZonesOperationsCancelCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -14342,7 +14129,7 @@ func (c *ProjectsZonesOperationsGetCall) Header() http.Header {
 
 func (c *ProjectsZonesOperationsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -14518,7 +14305,7 @@ func (c *ProjectsZonesOperationsListCall) Header() http.Header {
 
 func (c *ProjectsZonesOperationsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}

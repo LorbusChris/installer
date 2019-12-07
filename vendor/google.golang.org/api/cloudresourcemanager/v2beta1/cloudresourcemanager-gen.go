@@ -478,7 +478,7 @@ type Folder struct {
 	// Its format is `folders/{folder_id}`, for example: "folders/1234".
 	Name string `json:"name,omitempty"`
 
-	// Parent: Required. The Folder’s parent's resource name.
+	// Parent: The Folder’s parent's resource name.
 	// Updates to the folder's parent must be performed via
 	// MoveFolder.
 	Parent string `json:"parent,omitempty"`
@@ -690,6 +690,7 @@ type ListFoldersResponse struct {
 	// NextPageToken: A pagination token returned from a previous call to
 	// `ListFolders`
 	// that indicates from where listing should continue.
+	// This field is optional.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
 	// ServerResponse contains the HTTP response code and headers from the
@@ -721,8 +722,8 @@ func (s *ListFoldersResponse) MarshalJSON() ([]byte, error) {
 
 // MoveFolderRequest: The MoveFolder request message.
 type MoveFolderRequest struct {
-	// DestinationParent: Required. The resource name of the Folder or
-	// Organization to reparent
+	// DestinationParent: The resource name of the Folder or Organization to
+	// reparent
 	// the folder under.
 	// Must be of the form `folders/{folder_id}` or
 	// `organizations/{org_id}`.
@@ -1021,13 +1022,15 @@ func (s *ProjectCreationStatus) MarshalJSON() ([]byte, error) {
 
 // SearchFoldersRequest: The request message for searching folders.
 type SearchFoldersRequest struct {
-	// PageSize: Optional. The maximum number of folders to return in the
+	// PageSize: The maximum number of folders to return in the
 	// response.
+	// This field is optional.
 	PageSize int64 `json:"pageSize,omitempty"`
 
-	// PageToken: Optional. A pagination token returned from a previous call
-	// to `SearchFolders`
+	// PageToken: A pagination token returned from a previous call to
+	// `SearchFolders`
 	// that indicates from where search should continue.
+	// This field is optional.
 	PageToken string `json:"pageToken,omitempty"`
 
 	// Query: Search criteria used to select the Folders to return.
@@ -1097,6 +1100,7 @@ type SearchFoldersResponse struct {
 	// NextPageToken: A pagination token returned from a previous call to
 	// `SearchFolders`
 	// that indicates from where searching should continue.
+	// This field is optional.
 	NextPageToken string `json:"nextPageToken,omitempty"`
 
 	// ServerResponse contains the HTTP response code and headers from the
@@ -1351,8 +1355,8 @@ func (r *FoldersService) Create(folder *Folder) *FoldersCreateCall {
 	return c
 }
 
-// Parent sets the optional parameter "parent": Required. The resource
-// name of the new Folder's parent.
+// Parent sets the optional parameter "parent": The resource name of the
+// new Folder's parent.
 // Must be of the form `folders/{folder_id}` or
 // `organizations/{org_id}`.
 func (c *FoldersCreateCall) Parent(parent string) *FoldersCreateCall {
@@ -1387,7 +1391,7 @@ func (c *FoldersCreateCall) Header() http.Header {
 
 func (c *FoldersCreateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -1455,7 +1459,7 @@ func (c *FoldersCreateCall) Do(opts ...googleapi.CallOption) (*Operation, error)
 	//   "parameterOrder": [],
 	//   "parameters": {
 	//     "parent": {
-	//       "description": "Required. The resource name of the new Folder's parent.\nMust be of the form `folders/{folder_id}` or `organizations/{org_id}`.",
+	//       "description": "The resource name of the new Folder's parent.\nMust be of the form `folders/{folder_id}` or `organizations/{org_id}`.",
 	//       "location": "query",
 	//       "type": "string"
 	//     }
@@ -1529,7 +1533,7 @@ func (c *FoldersDeleteCall) Header() http.Header {
 
 func (c *FoldersDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -1597,7 +1601,7 @@ func (c *FoldersDeleteCall) Do(opts ...googleapi.CallOption) (*Folder, error) {
 	//   ],
 	//   "parameters": {
 	//     "name": {
-	//       "description": "Required. the resource name of the Folder to be deleted.\nMust be of the form `folders/{folder_id}`.",
+	//       "description": "the resource name of the Folder to be deleted.\nMust be of the form `folders/{folder_id}`.",
 	//       "location": "path",
 	//       "pattern": "^folders/[^/]+$",
 	//       "required": true,
@@ -1677,7 +1681,7 @@ func (c *FoldersGetCall) Header() http.Header {
 
 func (c *FoldersGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -1748,7 +1752,7 @@ func (c *FoldersGetCall) Do(opts ...googleapi.CallOption) (*Folder, error) {
 	//   ],
 	//   "parameters": {
 	//     "name": {
-	//       "description": "Required. The resource name of the Folder to retrieve.\nMust be of the form `folders/{folder_id}`.",
+	//       "description": "The resource name of the Folder to retrieve.\nMust be of the form `folders/{folder_id}`.",
 	//       "location": "path",
 	//       "pattern": "^folders/[^/]+$",
 	//       "required": true,
@@ -1820,7 +1824,7 @@ func (c *FoldersGetIamPolicyCall) Header() http.Header {
 
 func (c *FoldersGetIamPolicyCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -1943,6 +1947,7 @@ func (r *FoldersService) List() *FoldersListCall {
 
 // PageSize sets the optional parameter "pageSize": The maximum number
 // of Folders to return in the response.
+// This field is optional.
 func (c *FoldersListCall) PageSize(pageSize int64) *FoldersListCall {
 	c.urlParams_.Set("pageSize", fmt.Sprint(pageSize))
 	return c
@@ -1951,13 +1956,14 @@ func (c *FoldersListCall) PageSize(pageSize int64) *FoldersListCall {
 // PageToken sets the optional parameter "pageToken": A pagination token
 // returned from a previous call to `ListFolders`
 // that indicates where this listing should continue from.
+// This field is optional.
 func (c *FoldersListCall) PageToken(pageToken string) *FoldersListCall {
 	c.urlParams_.Set("pageToken", pageToken)
 	return c
 }
 
-// Parent sets the optional parameter "parent": Required. The resource
-// name of the Organization or Folder whose Folders are
+// Parent sets the optional parameter "parent": The resource name of the
+// Organization or Folder whose Folders are
 // being listed.
 // Must be of the form `folders/{folder_id}` or
 // `organizations/{org_id}`.
@@ -1972,7 +1978,7 @@ func (c *FoldersListCall) Parent(parent string) *FoldersListCall {
 // ShowDeleted sets the optional parameter "showDeleted": Controls
 // whether Folders in the
 // DELETE_REQUESTED
-// state should be returned. Defaults to false.
+// state should be returned. Defaults to false. This field is optional.
 func (c *FoldersListCall) ShowDeleted(showDeleted bool) *FoldersListCall {
 	c.urlParams_.Set("showDeleted", fmt.Sprint(showDeleted))
 	return c
@@ -2015,7 +2021,7 @@ func (c *FoldersListCall) Header() http.Header {
 
 func (c *FoldersListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2081,23 +2087,23 @@ func (c *FoldersListCall) Do(opts ...googleapi.CallOption) (*ListFoldersResponse
 	//   "parameterOrder": [],
 	//   "parameters": {
 	//     "pageSize": {
-	//       "description": "Optional. The maximum number of Folders to return in the response.",
+	//       "description": "The maximum number of Folders to return in the response.\nThis field is optional.",
 	//       "format": "int32",
 	//       "location": "query",
 	//       "type": "integer"
 	//     },
 	//     "pageToken": {
-	//       "description": "Optional. A pagination token returned from a previous call to `ListFolders`\nthat indicates where this listing should continue from.",
+	//       "description": "A pagination token returned from a previous call to `ListFolders`\nthat indicates where this listing should continue from.\nThis field is optional.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "parent": {
-	//       "description": "Required. The resource name of the Organization or Folder whose Folders are\nbeing listed.\nMust be of the form `folders/{folder_id}` or `organizations/{org_id}`.\nAccess to this method is controlled by checking the\n`resourcemanager.folders.list` permission on the `parent`.",
+	//       "description": "The resource name of the Organization or Folder whose Folders are\nbeing listed.\nMust be of the form `folders/{folder_id}` or `organizations/{org_id}`.\nAccess to this method is controlled by checking the\n`resourcemanager.folders.list` permission on the `parent`.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "showDeleted": {
-	//       "description": "Optional. Controls whether Folders in the\nDELETE_REQUESTED\nstate should be returned. Defaults to false.",
+	//       "description": "Controls whether Folders in the\nDELETE_REQUESTED\nstate should be returned. Defaults to false. This field is optional.",
 	//       "location": "query",
 	//       "type": "boolean"
 	//     }
@@ -2206,7 +2212,7 @@ func (c *FoldersMoveCall) Header() http.Header {
 
 func (c *FoldersMoveCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2279,7 +2285,7 @@ func (c *FoldersMoveCall) Do(opts ...googleapi.CallOption) (*Operation, error) {
 	//   ],
 	//   "parameters": {
 	//     "name": {
-	//       "description": "Required. The resource name of the Folder to move.\nMust be of the form folders/{folder_id}",
+	//       "description": "The resource name of the Folder to move.\nMust be of the form folders/{folder_id}",
 	//       "location": "path",
 	//       "pattern": "^folders/[^/]+$",
 	//       "required": true,
@@ -2340,8 +2346,8 @@ func (r *FoldersService) Patch(name string, folder *Folder) *FoldersPatchCall {
 	return c
 }
 
-// UpdateMask sets the optional parameter "updateMask": Required. Fields
-// to be updated.
+// UpdateMask sets the optional parameter "updateMask": Fields to be
+// updated.
 // Only the `display_name` can be updated.
 func (c *FoldersPatchCall) UpdateMask(updateMask string) *FoldersPatchCall {
 	c.urlParams_.Set("updateMask", updateMask)
@@ -2375,7 +2381,7 @@ func (c *FoldersPatchCall) Header() http.Header {
 
 func (c *FoldersPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2455,7 +2461,7 @@ func (c *FoldersPatchCall) Do(opts ...googleapi.CallOption) (*Folder, error) {
 	//       "type": "string"
 	//     },
 	//     "updateMask": {
-	//       "description": "Required. Fields to be updated.\nOnly the `display_name` can be updated.",
+	//       "description": "Fields to be updated.\nOnly the `display_name` can be updated.",
 	//       "format": "google-fieldmask",
 	//       "location": "query",
 	//       "type": "string"
@@ -2526,7 +2532,7 @@ func (c *FoldersSearchCall) Header() http.Header {
 
 func (c *FoldersSearchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2682,7 +2688,7 @@ func (c *FoldersSetIamPolicyCall) Header() http.Header {
 
 func (c *FoldersSetIamPolicyCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2827,7 +2833,7 @@ func (c *FoldersTestIamPermissionsCall) Header() http.Header {
 
 func (c *FoldersTestIamPermissionsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -2980,7 +2986,7 @@ func (c *FoldersUndeleteCall) Header() http.Header {
 
 func (c *FoldersUndeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -3053,7 +3059,7 @@ func (c *FoldersUndeleteCall) Do(opts ...googleapi.CallOption) (*Folder, error) 
 	//   ],
 	//   "parameters": {
 	//     "name": {
-	//       "description": "Required. The resource name of the Folder to undelete.\nMust be of the form `folders/{folder_id}`.",
+	//       "description": "The resource name of the Folder to undelete.\nMust be of the form `folders/{folder_id}`.",
 	//       "location": "path",
 	//       "pattern": "^folders/[^/]+$",
 	//       "required": true,
@@ -3133,7 +3139,7 @@ func (c *OperationsGetCall) Header() http.Header {
 
 func (c *OperationsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/1.13.4 gdcl/20191114")
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20191007")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}

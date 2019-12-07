@@ -145,6 +145,7 @@ replace (
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.6.2
 	github.com/improbable-eng/thanos => github.com/thanos-io/thanos v0.9.0
 	github.com/kshvakov/clickhouse => github.com/ClickHouse/clickhouse-go v1.3.12
+	github.com/kubernetes-sigs/aws-iam-authenticator => github.com/kubernetes-sigs/aws-iam-authenticator v0.3.1-0.20181019024009-82544ec86140
 	github.com/maxbrunsfeld/counterfeiter => github.com/maxbrunsfeld/counterfeiter/v6 v6.2.3-0.20191116041609-a931625b7c1f
 	github.com/metal3-io/baremetal-operator => github.com/openshift/baremetal-operator v0.0.0-20191017022404-1f983453b8d3
 	github.com/metal3-io/cluster-api-provider-baremetal => github.com/openshift/cluster-api-provider-baremetal v0.0.0-20190821174549-a2a477909c1d
@@ -155,6 +156,7 @@ replace (
 	github.com/terraform-providers/terraform-provider-ignition => github.com/LorbusChris/terraform-provider-ignition v1.0.2-0.20191206045501-a97472b5f449
 	github.com/uber-go/atomic => go.uber.org/atomic v1.5.1
 	golang.org/x/tools => golang.org/x/tools v0.0.0-20191112202413-08e24063958e
+	google.golang.org/api => google.golang.org/api v0.11.1-0.20191012001332-5e0e3f4a3bb8
 	gopkg.in/asn1-ber.v1 => github.com/go-asn1-ber/asn1-ber v1.3.1
 	gopkg.in/jarcoal/httpmock.v1 => github.com/jarcoal/httpmock v1.0.4
 	gopkg.in/ory-am/dockertest.v3 => github.com/ory/dockertest/v3 v3.5.2
