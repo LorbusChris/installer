@@ -612,7 +612,7 @@ github.com/gophercloud/utils/env
 github.com/gophercloud/utils/openstack/baremetal/v1/nodes
 github.com/gophercloud/utils/openstack/clientconfig
 github.com/gophercloud/utils/terraform/auth
-# github.com/hashicorp/aws-sdk-go-base v0.4.0
+# github.com/hashicorp/aws-sdk-go-base v0.4.0 => github.com/hashicorp/aws-sdk-go-base v0.4.1-0.20191030212819-91fe5671bc1b
 github.com/hashicorp/aws-sdk-go-base
 # github.com/hashicorp/consul/api v1.3.0
 github.com/hashicorp/consul/api

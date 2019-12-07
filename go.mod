@@ -141,6 +141,7 @@ replace (
 	github.com/golangci/gofmt => github.com/golangci/gofmt v0.0.0-20181222123516-0b8337e80d98
 	github.com/golangci/gosec => github.com/golangci/gosec v0.0.0-20190211064107-66fb7fc33547
 	github.com/h2non/gock => gopkg.in/h2non/gock.v1 v1.0.15
+	github.com/hashicorp/aws-sdk-go-base => github.com/hashicorp/aws-sdk-go-base v0.4.1-0.20191030212819-91fe5671bc1b
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.6.2
 	github.com/hashicorp/terraform => github.com/LorbusChris/terraform v0.12.18-0.20191207204959-942ad0779988
 	github.com/improbable-eng/thanos => github.com/thanos-io/thanos v0.9.0

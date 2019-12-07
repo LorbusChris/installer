@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 	"github.com/hashicorp/logutils"
 	"github.com/hashicorp/terraform/command"
-	"github.com/hashicorp/terraform/helper/logging"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	"github.com/mitchellh/cli"
 )
 
