@@ -25,9 +25,12 @@ type TableStoreClient struct {
 	accessKeySecret string
 	securityToken   string
 
-	httpClient      IHttpClient
-	config          *TableStoreConfig
-	random          *rand.Rand
+	httpClient IHttpClient
+	config     *TableStoreConfig
+	random     *rand.Rand
+
+	externalHeader      map[string]string
+	CustomizedRetryFunc CustomizedRetryNotMatterActions
 }
 
 type ClientOption func(*TableStoreClient)
@@ -60,6 +63,7 @@ type TableStoreConfig struct {
 	MaxRetryTime       time.Duration
 	HTTPTimeout        HTTPTimeout
 	MaxIdleConnections int
+	Transport          http.RoundTripper
 }
 
 func NewDefaultTableStoreConfig() *TableStoreConfig {
@@ -131,6 +135,7 @@ type PrimaryKey struct {
 
 type TableOption struct {
 	TimeToAlive, MaxVersion int
+	DeviationCellVersionInSec int64
 }
 
 type ReservedThroughput struct {
@@ -199,22 +204,22 @@ type PrimaryKeyType int32
 
 const (
 	PrimaryKeyType_INTEGER PrimaryKeyType = 1
-	PrimaryKeyType_STRING PrimaryKeyType = 2
-	PrimaryKeyType_BINARY PrimaryKeyType = 3
+	PrimaryKeyType_STRING  PrimaryKeyType = 2
+	PrimaryKeyType_BINARY  PrimaryKeyType = 3
 )
 
 const (
 	DefaultRetryInterval = 10
-	MaxRetryInterval = 320
+	MaxRetryInterval     = 320
 )
 
 type PrimaryKeyOption int32
 
 const (
-	NONE PrimaryKeyOption = 0
+	NONE           PrimaryKeyOption = 0
 	AUTO_INCREMENT PrimaryKeyOption = 1
-	MIN PrimaryKeyOption = 2
-	MAX PrimaryKeyOption = 3
+	MIN            PrimaryKeyOption = 2
+	MAX            PrimaryKeyOption = 3
 )
 
 type PrimaryKeyColumn struct {
@@ -264,8 +269,8 @@ type ColumnToUpdate struct {
 type RowExistenceExpectation int
 
 const (
-	RowExistenceExpectation_IGNORE RowExistenceExpectation = 0
-	RowExistenceExpectation_EXPECT_EXIST RowExistenceExpectation = 1
+	RowExistenceExpectation_IGNORE           RowExistenceExpectation = 0
+	RowExistenceExpectation_EXPECT_EXIST     RowExistenceExpectation = 1
 	RowExistenceExpectation_EXPECT_NOT_EXIST RowExistenceExpectation = 2
 )
 

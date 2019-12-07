@@ -1,5 +1,29 @@
 ## Unreleased
 
+## 1.6.1 (June 26 2019)
+
+- compute/networks: support network objects for AddNIC [#169]
+
+## 1.6.0 (June 24 2019)
+
+- compute/networks: added support for network objects [#158]
+- compute/instances: added instances().get support for deleted instances [#167]
+- storage: added support for multipart upload [#160]
+- storage: fixed directory list marker filtering [#156]
+
+## 1.3.1 (April 27 2018)
+
+- client: Fixing an issue where private Triton installations were marked as invalid DC [#152]
+
+## 1.3.0 (April 17 2018)
+
+- identity/roles: Add support for SetRoleTags [#112]
+- Add support for Triton Service Groups endpoint [#148]
+
+## 1.2.0 (March 20 2018)
+
+- compute/instance: Instance Deletion status now included in the GET instance response [#138]
+
 ## 1.1.1 (March 13 2018)
 
 - client: Adding the rbac user support to the SSHAgentSigner [BUG!]

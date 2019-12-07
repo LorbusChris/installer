@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -12,10 +13,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	gversion "github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform/helper/customdiff"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAwsElasticacheCluster() *schema.Resource {
@@ -41,13 +42,12 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 				ForceNew: true,
 			},
 			"availability_zones": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				ForceNew:      true,
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				Set:           schema.HashString,
-				ConflictsWith: []string{"preferred_availability_zones"},
-				Deprecated:    "Use `preferred_availability_zones` instead",
+				Type:     schema.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
+				Removed:  "Use `preferred_availability_zones` argument instead",
 			},
 			"az_mode": {
 				Type:     schema.TypeString,
@@ -96,7 +96,13 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 					// with non-converging diffs.
 					return strings.ToLower(val.(string))
 				},
-				ValidateFunc: validateElastiCacheClusterId,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 50),
+					validation.StringMatch(regexp.MustCompile(`^[0-9a-z-]+$`), "must contain only lowercase alphanumeric characters and hyphens"),
+					validation.StringMatch(regexp.MustCompile(`^[a-z]`), "must begin with a lowercase letter"),
+					validateStringNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
+					validateStringNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
+				),
 			},
 			"configuration_endpoint": {
 				Type:     schema.TypeString,
@@ -165,7 +171,6 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ConflictsWith: []string{
-					"availability_zones",
 					"az_mode",
 					"engine_version",
 					"engine",
@@ -387,12 +392,6 @@ func resourceAwsElasticacheClusterCreate(d *schema.ResourceData, meta interface{
 
 	if v, ok := d.GetOk("preferred_availability_zones"); ok && len(v.([]interface{})) > 0 {
 		req.PreferredAvailabilityZones = expandStringList(v.([]interface{}))
-	} else {
-		preferred_azs := d.Get("availability_zones").(*schema.Set).List()
-		if len(preferred_azs) > 0 {
-			azs := expandStringList(preferred_azs)
-			req.PreferredAvailabilityZones = azs
-		}
 	}
 
 	id, err := createElasticacheCacheCluster(conn, req)
@@ -809,6 +808,10 @@ func deleteElasticacheCacheCluster(conn *elasticache.ElastiCache, cacheClusterID
 		}
 		return nil
 	})
+	if isResourceTimeoutError(err) {
+		_, err = conn.DeleteCacheCluster(input)
+	}
+
 	return err
 }
 

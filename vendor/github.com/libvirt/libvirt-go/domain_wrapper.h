@@ -30,6 +30,7 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 #include "domain_compat.h"
+#include "domain_checkpoint_compat.h"
 
 int
 virDomainAbortJobWrapper(virDomainPtr domain,
@@ -990,5 +991,36 @@ virDomainUpdateDeviceFlagsWrapper(virDomainPtr domain,
                                   unsigned int flags,
                                   virErrorPtr err);
 
+int
+virDomainListAllCheckpointsWrapper(virDomainPtr domain,
+				   virDomainCheckpointPtr **cps,
+				   unsigned int flags,
+				   virErrorPtr err);
+
+virDomainCheckpointPtr
+virDomainCheckpointCreateXMLWrapper(virDomainPtr domain,
+				    const char *xmlDesc,
+				    unsigned int flags,
+				    virErrorPtr err);
+
+virDomainCheckpointPtr
+virDomainCheckpointLookupByNameWrapper(virDomainPtr domain,
+				       const char *name,
+				       unsigned int flags,
+				       virErrorPtr err);
+
+int
+virDomainGetGuestInfoWrapper(virDomainPtr domain,
+			     unsigned int types,
+			     virTypedParameterPtr *params,
+			     int *nparams,
+			     unsigned int flags,
+                             virErrorPtr err);
+
+int
+virDomainAgentSetResponseTimeoutWrapper(virDomainPtr domain,
+                                        int timeout,
+                                        unsigned int flags,
+                                        virErrorPtr err);
 
 #endif /* LIBVIRT_GO_DOMAIN_WRAPPER_H__ */

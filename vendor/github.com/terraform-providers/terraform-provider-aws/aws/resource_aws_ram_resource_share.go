@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ram"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsRamResourceShare() *schema.Resource {
@@ -29,6 +29,11 @@ func resourceAwsRamResourceShare() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -113,6 +118,7 @@ func resourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
+	d.Set("arn", resourceShare.ResourceShareArn)
 	d.Set("name", resourceShare.Name)
 	d.Set("allow_external_principals", resourceShare.AllowExternalPrincipals)
 
