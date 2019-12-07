@@ -1,6 +1,6 @@
 module github.com/openshift/installer
 
-go 1.12
+go 1.13
 
 require (
 	cloud.google.com/go/bigtable v1.1.0 // indirect
