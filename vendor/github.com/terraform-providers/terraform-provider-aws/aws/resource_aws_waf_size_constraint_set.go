@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -17,9 +16,6 @@ func resourceAwsWafSizeConstraintSet() *schema.Resource {
 		Read:   resourceAwsWafSizeConstraintSetRead,
 		Update: resourceAwsWafSizeConstraintSetUpdate,
 		Delete: resourceAwsWafSizeConstraintSetDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: wafSizeConstraintSetSchema(),
 	}
@@ -58,7 +54,7 @@ func resourceAwsWafSizeConstraintSetRead(d *schema.ResourceData, meta interface{
 
 	resp, err := conn.GetSizeConstraintSet(params)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == waf.ErrCodeNonexistentItemException {
+		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "WAFNonexistentItemException" {
 			log.Printf("[WARN] WAF SizeConstraintSet (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -69,14 +65,6 @@ func resourceAwsWafSizeConstraintSetRead(d *schema.ResourceData, meta interface{
 
 	d.Set("name", resp.SizeConstraintSet.Name)
 	d.Set("size_constraints", flattenWafSizeConstraints(resp.SizeConstraintSet.SizeConstraints))
-
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Service:   "waf",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("sizeconstraintset/%s", d.Id()),
-	}
-	d.Set("arn", arn.String())
 
 	return nil
 }

@@ -3,7 +3,6 @@ package aws
 import (
 	"bytes"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"log"
 	"time"
 
@@ -127,7 +126,7 @@ func resourceAwsRoute53ResolverRuleCreate(d *schema.ResourceData, meta interface
 		req.TargetIps = expandRoute53ResolverRuleTargetIps(v.(*schema.Set))
 	}
 	if v, ok := d.GetOk("tags"); ok && len(v.(map[string]interface{})) > 0 {
-		req.Tags = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Route53resolverTags()
+		req.Tags = tagsFromMapRoute53Resolver(v.(map[string]interface{}))
 	}
 
 	log.Printf("[DEBUG] Creating Route 53 Resolver rule: %s", req)
@@ -173,14 +172,9 @@ func resourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	tags, err := keyvaluetags.Route53resolverListTags(conn, d.Get("arn").(string))
-
+	err = getTagsRoute53Resolver(conn, d)
 	if err != nil {
-		return fmt.Errorf("error listing tags for Route53 Resolver rule (%s): %s", d.Get("arn").(string), err)
-	}
-
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("Error reading Route 53 Resolver rule tags %s: %s", d.Id(), err)
 	}
 
 	return nil
@@ -223,13 +217,10 @@ func resourceAwsRoute53ResolverRuleUpdate(d *schema.ResourceData, meta interface
 		d.SetPartial("target_ip")
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-		if err := keyvaluetags.Route53resolverUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating Route53 Resolver rule (%s) tags: %s", d.Get("arn").(string), err)
-		}
-		d.SetPartial("tags")
+	if err := setTagsRoute53Resolver(conn, d); err != nil {
+		return fmt.Errorf("error setting Route53 Resolver rule (%s) tags: %s", d.Id(), err)
 	}
+	d.SetPartial("tags")
 
 	d.Partial(false)
 	return resourceAwsRoute53ResolverRuleRead(d, meta)

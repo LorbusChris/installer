@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSubnet() *schema.Resource {
@@ -141,75 +140,11 @@ func resourceAwsSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			d.Id(), err)
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		// Handle EC2 eventual consistency on creation
-		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-			err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v)
-
-			if isAWSErr(err, "InvalidSubnetID.NotFound", "") {
-				return resource.RetryableError(err)
-			}
-
-			if err != nil {
-				return resource.NonRetryableError(err)
-			}
-
-			return nil
-		})
-
-		if isResourceTimeoutError(err) {
-			err = keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v)
-		}
-
-		if err != nil {
-			return fmt.Errorf("error adding tags: %s", err)
-		}
-
-		d.SetPartial("tags")
-	}
-
-	// You cannot modify multiple subnet attributes in the same request.
-	// Reference: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifySubnetAttribute.html
-
-	if d.Get("assign_ipv6_address_on_creation").(bool) {
-		input := &ec2.ModifySubnetAttributeInput{
-			AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
-				Value: aws.Bool(true),
-			},
-			SubnetId: aws.String(d.Id()),
-		}
-
-		if _, err := conn.ModifySubnetAttribute(input); err != nil {
-			return fmt.Errorf("error enabling EC2 Subnet (%s) assign IPv6 address on creation: %s", d.Id(), err)
-		}
-
-		d.SetPartial("assign_ipv6_address_on_creation")
-	}
-
-	if d.Get("map_public_ip_on_launch").(bool) {
-		input := &ec2.ModifySubnetAttributeInput{
-			MapPublicIpOnLaunch: &ec2.AttributeBooleanValue{
-				Value: aws.Bool(true),
-			},
-			SubnetId: aws.String(d.Id()),
-		}
-
-		if _, err := conn.ModifySubnetAttribute(input); err != nil {
-			return fmt.Errorf("error enabling EC2 Subnet (%s) map public IP on launch: %s", d.Id(), err)
-		}
-
-		d.SetPartial("map_public_ip_on_launch")
-	}
-
-	d.Partial(false)
-
-	return resourceAwsSubnetRead(d, meta)
+	return resourceAwsSubnetUpdate(d, meta)
 }
 
 func resourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	ignoreTags := meta.(*AWSClient).ignoreTags
-	ignoreTagPrefixes := meta.(*AWSClient).ignoreTagPrefixes
 
 	resp, err := conn.DescribeSubnets(&ec2.DescribeSubnetsInput{
 		SubnetIds: []*string{aws.String(d.Id())},
@@ -249,11 +184,7 @@ func resourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("arn", subnet.SubnetArn)
-
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(subnet.Tags).IgnoreAws().IgnorePrefixes(ignoreTagPrefixes).Ignore(ignoreTags).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
-
+	d.Set("tags", tagsToMap(subnet.Tags))
 	d.Set("owner_id", subnet.OwnerId)
 
 	return nil
@@ -264,13 +195,9 @@ func resourceAwsSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	d.Partial(true)
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-
-		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating EC2 Subnet (%s) tags: %s", d.Id(), err)
-		}
-
+	if err := setTags(conn, d); err != nil {
+		return err
+	} else {
 		d.SetPartial("tags")
 	}
 
@@ -293,7 +220,9 @@ func resourceAwsSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("ipv6_cidr_block") {
+	// We have to be careful here to not go through a change of association if this is a new resource
+	// A New resource here would denote that the Update func is called by the Create func
+	if d.HasChange("ipv6_cidr_block") && !d.IsNewResource() {
 		// We need to handle that we disassociate the IPv6 CIDR block before we try and associate the new one
 		// This could be an issue as, we could error out when we try and add the new one
 		// We may need to roll back the state and reattach the old one if this is the case

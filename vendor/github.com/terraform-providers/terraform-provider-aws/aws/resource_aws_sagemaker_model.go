@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSagemakerModel() *schema.Resource {
@@ -165,27 +164,30 @@ func resourceAwsSagemakerModelCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("primary_container"); ok {
-		createOpts.PrimaryContainer = expandContainer(v.([]interface{})[0].(map[string]interface{}))
+		m := v.([]interface{})[0].(map[string]interface{})
+		createOpts.PrimaryContainer = expandContainer(m)
 	}
 
 	if v, ok := d.GetOk("container"); ok {
-		createOpts.Containers = expandContainers(v.([]interface{}))
+		containers := expandContainers(v.([]interface{}))
+		createOpts.SetContainers(containers)
 	}
 
 	if v, ok := d.GetOk("execution_role_arn"); ok {
-		createOpts.ExecutionRoleArn = aws.String(v.(string))
+		createOpts.SetExecutionRoleArn(v.(string))
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
-		createOpts.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
+		createOpts.SetTags(tagsFromMapSagemaker(v.(map[string]interface{})))
 	}
 
 	if v, ok := d.GetOk("vpc_config"); ok {
-		createOpts.VpcConfig = expandSageMakerVpcConfigRequest(v.([]interface{}))
+		vpcConfig := expandSageMakerVpcConfigRequest(v.([]interface{}))
+		createOpts.SetVpcConfig(vpcConfig)
 	}
 
 	if v, ok := d.GetOk("enable_network_isolation"); ok {
-		createOpts.EnableNetworkIsolation = aws.Bool(v.(bool))
+		createOpts.SetEnableNetworkIsolation(v.(bool))
 	}
 
 	log.Printf("[DEBUG] Sagemaker model create config: %#v", *createOpts)
@@ -253,15 +255,16 @@ func resourceAwsSagemakerModelRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error setting vpc_config: %s", err)
 	}
 
-	tags, err := keyvaluetags.SagemakerListTags(conn, aws.StringValue(model.ModelArn))
+	tagsOutput, err := conn.ListTags(&sagemaker.ListTagsInput{
+		ResourceArn: model.ModelArn,
+	})
 	if err != nil {
-		return fmt.Errorf("error listing tags for Sagemaker Model (%s): %s", d.Id(), err)
+		return fmt.Errorf("error listing tags of Sagemaker model %s: %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	if err := d.Set("tags", tagsToMapSagemaker(tagsOutput.Tags)); err != nil {
+		return err
 	}
-
 	return nil
 }
 
@@ -283,12 +286,10 @@ func resourceAwsSagemakerModelUpdate(d *schema.ResourceData, meta interface{}) e
 
 	d.Partial(true)
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-
-		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating Sagemaker Model (%s) tags: %s", d.Id(), err)
-		}
+	if err := setSagemakerTags(conn, d); err != nil {
+		return err
+	} else {
+		d.SetPartial("tags")
 	}
 
 	d.Partial(false)

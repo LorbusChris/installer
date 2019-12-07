@@ -280,7 +280,6 @@ github.com/aws/aws-sdk-go/service/gamelift
 github.com/aws/aws-sdk-go/service/glacier
 github.com/aws/aws-sdk-go/service/globalaccelerator
 github.com/aws/aws-sdk-go/service/glue
-github.com/aws/aws-sdk-go/service/greengrass
 github.com/aws/aws-sdk-go/service/guardduty
 github.com/aws/aws-sdk-go/service/iam
 github.com/aws/aws-sdk-go/service/iam/iamiface
@@ -612,7 +611,7 @@ github.com/gophercloud/utils/env
 github.com/gophercloud/utils/openstack/baremetal/v1/nodes
 github.com/gophercloud/utils/openstack/clientconfig
 github.com/gophercloud/utils/terraform/auth
-# github.com/hashicorp/aws-sdk-go-base v0.4.0 => github.com/hashicorp/aws-sdk-go-base v0.4.1-0.20191030212819-91fe5671bc1b
+# github.com/hashicorp/aws-sdk-go-base v0.4.0
 github.com/hashicorp/aws-sdk-go-base
 # github.com/hashicorp/consul/api v1.3.0
 github.com/hashicorp/consul/api
@@ -855,7 +854,7 @@ github.com/joyent/triton-go/authentication
 github.com/joyent/triton-go/client
 github.com/joyent/triton-go/errors
 github.com/joyent/triton-go/storage
-# github.com/json-iterator/go v1.1.8
+# github.com/json-iterator/go v1.1.7
 github.com/json-iterator/go
 # github.com/jstemmer/go-junit-report v0.9.1
 github.com/jstemmer/go-junit-report
@@ -1029,7 +1028,7 @@ github.com/stoewer/go-strcase
 github.com/stretchr/testify/assert
 # github.com/svanharmelen/jsonapi v0.0.0-20180618144545-0c0828c3f16d
 github.com/svanharmelen/jsonapi
-# github.com/terraform-providers/terraform-provider-aws v0.0.0-20191204024303-33e413ccee39
+# github.com/terraform-providers/terraform-provider-aws v0.0.0 => github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20191017090247-73c1eb5c4b2c
 github.com/terraform-providers/terraform-provider-aws/aws
 github.com/terraform-providers/terraform-provider-aws/aws/internal/flatmap
 github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags

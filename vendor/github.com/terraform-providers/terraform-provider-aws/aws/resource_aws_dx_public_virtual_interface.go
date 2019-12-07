@@ -24,28 +24,25 @@ func resourceAwsDxPublicVirtualInterface() *schema.Resource {
 		CustomizeDiff: resourceAwsDxPublicVirtualInterfaceCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
-			"address_family": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					directconnect.AddressFamilyIpv4,
-					directconnect.AddressFamilyIpv6,
-				}, false),
-			},
-			"amazon_address": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"aws_device": {
+			"connection_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
+				ForceNew: true,
+			},
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"vlan": {
+				Type:         schema.TypeInt,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntBetween(1, 4094),
 			},
 			"bgp_asn": {
 				Type:     schema.TypeInt,
@@ -58,10 +55,11 @@ func resourceAwsDxPublicVirtualInterface() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"connection_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"address_family": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{directconnect.AddressFamilyIpv4, directconnect.AddressFamilyIpv6}, false),
 			},
 			"customer_address": {
 				Type:     schema.TypeString,
@@ -69,9 +67,10 @@ func resourceAwsDxPublicVirtualInterface() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"name": {
+			"amazon_address": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"route_filter_prefixes": {
@@ -82,11 +81,9 @@ func resourceAwsDxPublicVirtualInterface() *schema.Resource {
 				MinItems: 1,
 			},
 			"tags": tagsSchema(),
-			"vlan": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(1, 4094),
+			"aws_device": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 
@@ -103,14 +100,11 @@ func resourceAwsDxPublicVirtualInterfaceCreate(d *schema.ResourceData, meta inte
 	req := &directconnect.CreatePublicVirtualInterfaceInput{
 		ConnectionId: aws.String(d.Get("connection_id").(string)),
 		NewPublicVirtualInterface: &directconnect.NewPublicVirtualInterface{
-			AddressFamily:        aws.String(d.Get("address_family").(string)),
-			Asn:                  aws.Int64(int64(d.Get("bgp_asn").(int))),
 			VirtualInterfaceName: aws.String(d.Get("name").(string)),
 			Vlan:                 aws.Int64(int64(d.Get("vlan").(int))),
+			Asn:                  aws.Int64(int64(d.Get("bgp_asn").(int))),
+			AddressFamily:        aws.String(d.Get("address_family").(string)),
 		},
-	}
-	if v, ok := d.GetOk("amazon_address"); ok && v.(string) != "" {
-		req.NewPublicVirtualInterface.AmazonAddress = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("bgp_auth_key"); ok && v.(string) != "" {
 		req.NewPublicVirtualInterface.AuthKey = aws.String(v.(string))
@@ -118,26 +112,34 @@ func resourceAwsDxPublicVirtualInterfaceCreate(d *schema.ResourceData, meta inte
 	if v, ok := d.GetOk("customer_address"); ok && v.(string) != "" {
 		req.NewPublicVirtualInterface.CustomerAddress = aws.String(v.(string))
 	}
+	if v, ok := d.GetOk("amazon_address"); ok && v.(string) != "" {
+		req.NewPublicVirtualInterface.AmazonAddress = aws.String(v.(string))
+	}
 	if v, ok := d.GetOk("route_filter_prefixes"); ok {
 		req.NewPublicVirtualInterface.RouteFilterPrefixes = expandDxRouteFilterPrefixes(v.(*schema.Set))
 	}
-	if v, ok := d.GetOk("tags"); ok {
-		req.NewPublicVirtualInterface.Tags = tagsFromMapDX(v.(map[string]interface{}))
-	}
 
-	log.Printf("[DEBUG] Creating Direct Connect public virtual interface: %s", req)
+	log.Printf("[DEBUG] Creating Direct Connect public virtual interface: %#v", req)
 	resp, err := conn.CreatePublicVirtualInterface(req)
 	if err != nil {
-		return fmt.Errorf("error creating Direct Connect public virtual interface: %s", err)
+		return fmt.Errorf("Error creating Direct Connect public virtual interface: %s", err)
 	}
 
 	d.SetId(aws.StringValue(resp.VirtualInterfaceId))
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Region:    meta.(*AWSClient).region,
+		Service:   "directconnect",
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("dxvif/%s", d.Id()),
+	}.String()
+	d.Set("arn", arn)
 
 	if err := dxPublicVirtualInterfaceWaitUntilAvailable(conn, d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
 		return err
 	}
 
-	return resourceAwsDxPublicVirtualInterfaceRead(d, meta)
+	return resourceAwsDxPublicVirtualInterfaceUpdate(d, meta)
 }
 
 func resourceAwsDxPublicVirtualInterfaceRead(d *schema.ResourceData, meta interface{}) error {
@@ -153,31 +155,18 @@ func resourceAwsDxPublicVirtualInterfaceRead(d *schema.ResourceData, meta interf
 		return nil
 	}
 
-	d.Set("address_family", vif.AddressFamily)
-	d.Set("amazon_address", vif.AmazonAddress)
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Region:    meta.(*AWSClient).region,
-		Service:   "directconnect",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("dxvif/%s", d.Id()),
-	}.String()
-	d.Set("arn", arn)
-	d.Set("aws_device", vif.AwsDeviceV2)
-	d.Set("bgp_asn", vif.Asn)
-	d.Set("bgp_auth_key", vif.AuthKey)
-	d.Set("customer_address", vif.CustomerAddress)
 	d.Set("connection_id", vif.ConnectionId)
 	d.Set("name", vif.VirtualInterfaceName)
-	if err := d.Set("route_filter_prefixes", flattenDxRouteFilterPrefixes(vif.RouteFilterPrefixes)); err != nil {
-		return fmt.Errorf("error setting route_filter_prefixes: %s", err)
-	}
 	d.Set("vlan", vif.Vlan)
-	if err := getTagsDX(conn, d, d.Get("arn").(string)); err != nil {
-		return fmt.Errorf("error getting Direct Connect public virtual interface (%s) tags: %s", d.Id(), err)
-	}
-
-	return nil
+	d.Set("bgp_asn", vif.Asn)
+	d.Set("bgp_auth_key", vif.AuthKey)
+	d.Set("address_family", vif.AddressFamily)
+	d.Set("customer_address", vif.CustomerAddress)
+	d.Set("amazon_address", vif.AmazonAddress)
+	d.Set("route_filter_prefixes", flattenDxRouteFilterPrefixes(vif.RouteFilterPrefixes))
+	d.Set("aws_device", vif.AwsDeviceV2)
+	err1 := getTagsDX(conn, d, d.Get("arn").(string))
+	return err1
 }
 
 func resourceAwsDxPublicVirtualInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -193,19 +182,14 @@ func resourceAwsDxPublicVirtualInterfaceDelete(d *schema.ResourceData, meta inte
 }
 
 func resourceAwsDxPublicVirtualInterfaceImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*AWSClient).dxconn
-
-	vif, err := dxVirtualInterfaceRead(d.Id(), conn)
-	if err != nil {
-		return nil, err
-	}
-	if vif == nil {
-		return nil, fmt.Errorf("virtual interface (%s) not found", d.Id())
-	}
-
-	if vifType := aws.StringValue(vif.VirtualInterfaceType); vifType != "public" {
-		return nil, fmt.Errorf("virtual interface (%s) has incorrect type: %s", d.Id(), vifType)
-	}
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Region:    meta.(*AWSClient).region,
+		Service:   "directconnect",
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("dxvif/%s", d.Id()),
+	}.String()
+	d.Set("arn", arn)
 
 	return []*schema.ResourceData{d}, nil
 }

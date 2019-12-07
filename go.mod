@@ -92,7 +92,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/stoewer/go-strcase v1.1.0 // indirect
 	github.com/stretchr/testify v1.4.0
-	github.com/terraform-providers/terraform-provider-aws v0.0.0-20191204024303-33e413ccee39
+	github.com/terraform-providers/terraform-provider-aws v0.0.0
 	github.com/terraform-providers/terraform-provider-azuread v0.7.0 // indirect
 	github.com/terraform-providers/terraform-provider-azurerm v1.38.0
 	github.com/terraform-providers/terraform-provider-google v0.0.0-20191204001720-5937ed8454f5
@@ -141,7 +141,6 @@ replace (
 	github.com/golangci/gofmt => github.com/golangci/gofmt v0.0.0-20181222123516-0b8337e80d98
 	github.com/golangci/gosec => github.com/golangci/gosec v0.0.0-20190211064107-66fb7fc33547
 	github.com/h2non/gock => gopkg.in/h2non/gock.v1 v1.0.15
-	github.com/hashicorp/aws-sdk-go-base => github.com/hashicorp/aws-sdk-go-base v0.4.1-0.20191030212819-91fe5671bc1b
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.6.2
 	github.com/hashicorp/terraform => github.com/LorbusChris/terraform v0.12.18-0.20191207204959-942ad0779988
 	github.com/improbable-eng/thanos => github.com/thanos-io/thanos v0.9.0
@@ -154,6 +153,7 @@ replace (
 	github.com/moul/anonuuid => moul.io/anonuuid v1.2.1
 	github.com/openshift-metal3/terraform-provider-ironic => github.com/LorbusChris/terraform-provider-ironic v0.1.9-0.20191206181954-e83f27107627
 	github.com/renstrom/fuzzysearch => github.com/lithammer/fuzzysearch v1.0.2
+	github.com/terraform-providers/terraform-provider-aws => github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20191017090247-73c1eb5c4b2c
 	github.com/terraform-providers/terraform-provider-ignition => github.com/LorbusChris/terraform-provider-ignition v1.0.2-0.20191206045501-a97472b5f449
 	github.com/uber-go/atomic => go.uber.org/atomic v1.5.1
 	google.golang.org/api => google.golang.org/api v0.11.1-0.20191012001332-5e0e3f4a3bb8

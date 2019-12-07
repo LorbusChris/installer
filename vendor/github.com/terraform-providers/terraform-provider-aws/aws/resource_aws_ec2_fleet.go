@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsEc2Fleet() *schema.Resource {
@@ -193,7 +192,12 @@ func resourceAwsEc2Fleet() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				ForceNew: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 			"target_capacity_specification": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -308,7 +312,7 @@ func resourceAwsEc2FleetCreate(d *schema.ResourceData, meta interface{}) error {
 		SpotOptions:                      expandEc2SpotOptionsRequest(d.Get("spot_options").([]interface{})),
 		TargetCapacitySpecification:      expandEc2TargetCapacitySpecificationRequest(d.Get("target_capacity_specification").([]interface{})),
 		TerminateInstancesWithExpiration: aws.Bool(d.Get("terminate_instances_with_expiration").(bool)),
-		TagSpecifications:                ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeFleet),
+		TagSpecifications:                expandEc2TagSpecifications(d.Get("tags").(map[string]interface{})),
 		Type:                             aws.String(d.Get("type").(string)),
 	}
 
@@ -431,7 +435,7 @@ func resourceAwsEc2FleetRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("terminate_instances_with_expiration", fleet.TerminateInstancesWithExpiration)
 	d.Set("type", fleet.Type)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(fleet.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tagsToMap(fleet.Tags)); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -469,14 +473,6 @@ func resourceAwsEc2FleetUpdate(d *schema.ResourceData, meta interface{}) error {
 	_, err = stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("error waiting for EC2 Fleet (%s) modification: %s", d.Id(), err)
-	}
-
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-
-		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
-		}
 	}
 
 	return resourceAwsEc2FleetRead(d, meta)
@@ -695,6 +691,19 @@ func expandEc2SpotOptionsRequest(l []interface{}) *ec2.SpotOptionsRequest {
 	}
 
 	return spotOptionsRequest
+}
+
+func expandEc2TagSpecifications(m map[string]interface{}) []*ec2.TagSpecification {
+	if len(m) == 0 {
+		return nil
+	}
+
+	return []*ec2.TagSpecification{
+		{
+			ResourceType: aws.String("fleet"),
+			Tags:         tagsFromMap(m),
+		},
+	}
 }
 
 func expandEc2TargetCapacitySpecificationRequest(l []interface{}) *ec2.TargetCapacitySpecificationRequest {

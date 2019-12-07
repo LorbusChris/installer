@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsInstance() *schema.Resource {
@@ -337,19 +336,19 @@ func resourceAwsInstance() *schema.Resource {
 							ForceNew: true,
 						},
 
+						"kms_key_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+
 						"iops": {
 							Type:             schema.TypeInt,
 							Optional:         true,
 							Computed:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: iopsDiffSuppressFunc,
-						},
-
-						"kms_key_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
 						},
 
 						"snapshot_id": {
@@ -538,9 +537,6 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	tagSpecifications := ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeInstance)
-	tagSpecifications = append(tagSpecifications, ec2TagSpecificationsFromMap(d.Get("volume_tags").(map[string]interface{}), ec2.ResourceTypeVolume)...)
-
 	// Build the creation struct
 	runOpts := &ec2.RunInstancesInput{
 		BlockDeviceMappings:               instanceOpts.BlockDeviceMappings,
@@ -565,7 +561,6 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 		UserData:                          instanceOpts.UserData64,
 		CreditSpecification:               instanceOpts.CreditSpecification,
 		CpuOptions:                        instanceOpts.CpuOptions,
-		TagSpecifications:                 tagSpecifications,
 	}
 
 	_, ipv6CountOk := d.GetOk("ipv6_address_count")
@@ -573,6 +568,34 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if ipv6AddressOk && ipv6CountOk {
 		return fmt.Errorf("Only 1 of `ipv6_address_count` or `ipv6_addresses` can be specified")
+	}
+
+	tagsSpec := make([]*ec2.TagSpecification, 0)
+
+	if v, ok := d.GetOk("tags"); ok {
+		tags := tagsFromMap(v.(map[string]interface{}))
+
+		spec := &ec2.TagSpecification{
+			ResourceType: aws.String("instance"),
+			Tags:         tags,
+		}
+
+		tagsSpec = append(tagsSpec, spec)
+	}
+
+	if v, ok := d.GetOk("volume_tags"); ok {
+		tags := tagsFromMap(v.(map[string]interface{}))
+
+		spec := &ec2.TagSpecification{
+			ResourceType: aws.String("volume"),
+			Tags:         tags,
+		}
+
+		tagsSpec = append(tagsSpec, spec)
+	}
+
+	if len(tagsSpec) > 0 {
+		runOpts.TagSpecifications = tagsSpec
 	}
 
 	// Create the instance
@@ -803,17 +826,10 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("monitoring", monitoringState == "enabled" || monitoringState == "pending")
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(instance.Tags).IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
+	d.Set("tags", tagsToMap(instance.Tags))
 
-	volumeTags, err := readVolumeTags(conn, d.Id())
-	if err != nil {
+	if err := readVolumeTags(conn, d); err != nil {
 		return err
-	}
-
-	if err := d.Set("volume_tags", keyvaluetags.Ec2KeyValueTags(volumeTags).IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting volume_tags: %s", err)
 	}
 
 	if err := readSecurityGroups(d, instance, conn); err != nil {
@@ -907,29 +923,15 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	d.Partial(true)
 
 	if d.HasChange("tags") && !d.IsNewResource() {
-		o, n := d.GetChange("tags")
-
-		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
-		}
-
-		d.SetPartial("tags")
-	}
-
-	if d.HasChange("volume_tags") && !d.IsNewResource() {
-		volumeIds, err := getAwsInstanceVolumeIds(conn, d.Id())
-		if err != nil {
+		if err := setTags(conn, d); err != nil {
 			return err
 		}
-
-		o, n := d.GetChange("volume_tags")
-
-		for _, volumeId := range volumeIds {
-			if err := keyvaluetags.Ec2UpdateTags(conn, volumeId, o, n); err != nil {
-				return fmt.Errorf("error updating volume_tags (%s): %s", volumeId, err)
-			}
+		d.SetPartial("tags")
+	}
+	if d.HasChange("volume_tags") && !d.IsNewResource() {
+		if err := setVolumeTags(conn, d); err != nil {
+			return err
 		}
-
 		d.SetPartial("volume_tags")
 	}
 
@@ -1231,12 +1233,7 @@ func resourceAwsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
 	err := awsTerminateInstance(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
-
-	if err != nil {
-		return fmt.Errorf("error terminating EC2 Instance (%s): %s", d.Id(), err)
-	}
-
-	return nil
+	return err
 }
 
 // InstanceStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch
@@ -1318,7 +1315,6 @@ func readBlockDevicesFromInstance(instance *ec2.Instance, conn *ec2.EC2) (map[st
 	blockDevices := make(map[string]interface{})
 	blockDevices["ebs"] = make([]map[string]interface{}, 0)
 	blockDevices["root"] = nil
-	// Ephemeral devices don't show up in BlockDeviceMappings or DescribeVolumes so we can't actually set them
 
 	instanceBlockDevices := make(map[string]*ec2.InstanceBlockDeviceMapping)
 	for _, bd := range instance.BlockDeviceMappings {
@@ -1640,22 +1636,37 @@ func readBlockDeviceMappingsFromConfig(
 	return blockDevices, nil
 }
 
-func readVolumeTags(conn *ec2.EC2, instanceId string) ([]*ec2.Tag, error) {
-	volumeIds, err := getAwsInstanceVolumeIds(conn, instanceId)
+func readVolumeTags(conn *ec2.EC2, d *schema.ResourceData) error {
+	volumeIds, err := getAwsInstanceVolumeIds(conn, d)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := conn.DescribeTags(&ec2.DescribeTagsInput{
-		Filters: ec2AttributeFiltersFromMultimap(map[string][]string{
-			"resource-id": volumeIds,
-		}),
+	tagsResp, err := conn.DescribeTags(&ec2.DescribeTagsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("resource-id"),
+				Values: volumeIds,
+			},
+		},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error getting tags for volumes (%s): %s", volumeIds, err)
+		return err
 	}
 
-	return ec2TagsFromTagDescriptions(resp.Tags), nil
+	var tags []*ec2.Tag
+
+	for _, t := range tagsResp.Tags {
+		tag := &ec2.Tag{
+			Key:   t.Key,
+			Value: t.Value,
+		}
+		tags = append(tags, tag)
+	}
+
+	d.Set("volume_tags", tagsToMap(tags))
+
+	return nil
 }
 
 // Determine whether we're referring to security groups with
@@ -1956,7 +1967,7 @@ func awsTerminateInstance(conn *ec2.EC2, id string, timeout time.Duration) error
 		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
 			return nil
 		}
-		return err
+		return fmt.Errorf("Error terminating instance: %s", err)
 	}
 
 	return waitForInstanceDeletion(conn, id, timeout)
@@ -2004,20 +2015,25 @@ func userDataHashSum(user_data string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func getAwsInstanceVolumeIds(conn *ec2.EC2, instanceId string) ([]string, error) {
-	volumeIds := []string{}
+func getAwsInstanceVolumeIds(conn *ec2.EC2, d *schema.ResourceData) ([]*string, error) {
+	volumeIds := make([]*string, 0)
 
-	resp, err := conn.DescribeVolumes(&ec2.DescribeVolumesInput{
-		Filters: buildEC2AttributeFilterList(map[string]string{
-			"attachment.instance-id": instanceId,
-		}),
-	})
+	opts := &ec2.DescribeVolumesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("attachment.instance-id"),
+				Values: []*string{aws.String(d.Id())},
+			},
+		},
+	}
+
+	resp, err := conn.DescribeVolumes(opts)
 	if err != nil {
-		return nil, fmt.Errorf("error getting volumes for instance (%s): %s", instanceId, err)
+		return nil, err
 	}
 
 	for _, v := range resp.Volumes {
-		volumeIds = append(volumeIds, aws.StringValue(v.VolumeId))
+		volumeIds = append(volumeIds, v.VolumeId)
 	}
 
 	return volumeIds, nil

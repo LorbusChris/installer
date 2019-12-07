@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsCloudFormationStack() *schema.Resource {
@@ -63,7 +62,10 @@ func dataSourceAwsCloudFormationStack() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchemaComputed(),
+			"tags": {
+				Type:     schema.TypeMap,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -96,9 +98,7 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("parameters", flattenAllCloudFormationParameters(stack.Parameters))
-	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stack.Tags).IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
+	d.Set("tags", flattenCloudFormationTags(stack.Tags))
 	d.Set("outputs", flattenCloudFormationOutputs(stack.Outputs))
 
 	if len(stack.Capabilities) > 0 {

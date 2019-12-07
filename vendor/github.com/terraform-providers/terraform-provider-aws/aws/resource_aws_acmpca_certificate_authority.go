@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
@@ -269,17 +268,12 @@ func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 
 func resourceAwsAcmpcaCertificateAuthorityCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).acmpcaconn
-	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AcmpcaTags()
 
 	input := &acmpca.CreateCertificateAuthorityInput{
 		CertificateAuthorityConfiguration: expandAcmpcaCertificateAuthorityConfiguration(d.Get("certificate_authority_configuration").([]interface{})),
 		CertificateAuthorityType:          aws.String(d.Get("type").(string)),
 		IdempotencyToken:                  aws.String(resource.UniqueId()),
 		RevocationConfiguration:           expandAcmpcaRevocationConfiguration(d.Get("revocation_configuration").([]interface{})),
-	}
-
-	if len(tags) > 0 {
-		input.Tags = tags
 	}
 
 	log.Printf("[DEBUG] Creating ACMPCA Certificate Authority: %s", input)
@@ -304,6 +298,19 @@ func resourceAwsAcmpcaCertificateAuthorityCreate(d *schema.ResourceData, meta in
 	}
 
 	d.SetId(aws.StringValue(output.CertificateAuthorityArn))
+
+	if v, ok := d.GetOk("tags"); ok {
+		input := &acmpca.TagCertificateAuthorityInput{
+			CertificateAuthorityArn: aws.String(d.Id()),
+			Tags:                    tagsFromMapACMPCA(v.(map[string]interface{})),
+		}
+
+		log.Printf("[DEBUG] Tagging ACMPCA Certificate Authority: %s", input)
+		_, err := conn.TagCertificateAuthority(input)
+		if err != nil {
+			return fmt.Errorf("error tagging ACMPCA Certificate Authority %q: %s", d.Id(), input)
+		}
+	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{
@@ -420,13 +427,12 @@ func resourceAwsAcmpcaCertificateAuthorityRead(d *schema.ResourceData, meta inte
 		d.Set("certificate_signing_request", getCertificateAuthorityCsrOutput.Csr)
 	}
 
-	tags, err := keyvaluetags.AcmpcaListTags(conn, d.Id())
-
+	tags, err := listAcmpcaTags(conn, d.Id())
 	if err != nil {
-		return fmt.Errorf("error listing tags for ACMPCA Certificate Authority (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading ACMPCA Certificate Authority %q tags: %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tagsToMapACMPCA(tags)); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -463,10 +469,30 @@ func resourceAwsAcmpcaCertificateAuthorityUpdate(d *schema.ResourceData, meta in
 	}
 
 	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
+		oraw, nraw := d.GetChange("tags")
+		o := oraw.(map[string]interface{})
+		n := nraw.(map[string]interface{})
+		create, remove := diffTagsACMPCA(tagsFromMapACMPCA(o), tagsFromMapACMPCA(n))
 
-		if err := keyvaluetags.AcmpcaUpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating ACMPCA Certificate Authority (%s) tags: %s", d.Id(), err)
+		if len(remove) > 0 {
+			log.Printf("[DEBUG] Removing ACMPCA Certificate Authority %q tags: %#v", d.Id(), remove)
+			_, err := conn.UntagCertificateAuthority(&acmpca.UntagCertificateAuthorityInput{
+				CertificateAuthorityArn: aws.String(d.Id()),
+				Tags:                    remove,
+			})
+			if err != nil {
+				return fmt.Errorf("error updating ACMPCA Certificate Authority %q tags: %s", d.Id(), err)
+			}
+		}
+		if len(create) > 0 {
+			log.Printf("[DEBUG] Creating ACMPCA Certificate Authority %q tags: %#v", d.Id(), create)
+			_, err := conn.TagCertificateAuthority(&acmpca.TagCertificateAuthorityInput{
+				CertificateAuthorityArn: aws.String(d.Id()),
+				Tags:                    create,
+			})
+			if err != nil {
+				return fmt.Errorf("error updating ACMPCA Certificate Authority %q tags: %s", d.Id(), err)
+			}
 		}
 	}
 
@@ -687,4 +713,25 @@ func flattenAcmpcaRevocationConfiguration(config *acmpca.RevocationConfiguration
 	}
 
 	return []interface{}{m}
+}
+
+func listAcmpcaTags(conn *acmpca.ACMPCA, certificateAuthorityArn string) ([]*acmpca.Tag, error) {
+	tags := []*acmpca.Tag{}
+	input := &acmpca.ListTagsInput{
+		CertificateAuthorityArn: aws.String(certificateAuthorityArn),
+	}
+
+	for {
+		output, err := conn.ListTags(input)
+		if err != nil {
+			return tags, err
+		}
+		tags = append(tags, output.Tags...)
+		if output.NextToken == nil {
+			break
+		}
+		input.NextToken = output.NextToken
+	}
+
+	return tags, nil
 }

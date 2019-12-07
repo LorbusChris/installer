@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsBackupPlan() *schema.Resource {
@@ -69,10 +68,14 @@ func resourceAwsBackupPlan() *schema.Resource {
 								},
 							},
 						},
-						"recovery_point_tags": tagsSchema(),
+						"recovery_point_tags": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
 					},
 				},
-				Set: backupBackupPlanHash,
+				Set: resourceAwsPlanRuleHash,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -90,21 +93,28 @@ func resourceAwsBackupPlan() *schema.Resource {
 func resourceAwsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
 
-	input := &backup.CreateBackupPlanInput{
-		BackupPlan: &backup.PlanInput{
-			BackupPlanName: aws.String(d.Get("name").(string)),
-			Rules:          expandBackupPlanRules(d.Get("rule").(*schema.Set)),
-		},
-		BackupPlanTags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().BackupTags(),
+	plan := &backup.PlanInput{
+		BackupPlanName: aws.String(d.Get("name").(string)),
 	}
 
-	log.Printf("[DEBUG] Creating Backup Plan: %#v", input)
+	rules := expandBackupPlanRules(d.Get("rule").(*schema.Set).List())
+
+	plan.Rules = rules
+
+	input := &backup.CreateBackupPlanInput{
+		BackupPlan: plan,
+	}
+
+	if v, ok := d.GetOk("tags"); ok {
+		input.BackupPlanTags = tagsFromMapGeneric(v.(map[string]interface{}))
+	}
+
 	resp, err := conn.CreateBackupPlan(input)
 	if err != nil {
 		return fmt.Errorf("error creating Backup Plan: %s", err)
 	}
 
-	d.SetId(aws.StringValue(resp.BackupPlanId))
+	d.SetId(*resp.BackupPlanId)
 
 	return resourceAwsBackupPlanRead(d, meta)
 }
@@ -112,33 +122,59 @@ func resourceAwsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error
 func resourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
 
-	resp, err := conn.GetBackupPlan(&backup.GetBackupPlanInput{
+	input := &backup.GetBackupPlanInput{
 		BackupPlanId: aws.String(d.Id()),
-	})
+	}
+
+	resp, err := conn.GetBackupPlan(input)
 	if isAWSErr(err, backup.ErrCodeResourceNotFoundException, "") {
 		log.Printf("[WARN] Backup Plan (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
+
 	if err != nil {
-		return fmt.Errorf("error reading Backup Plan (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading Backup Plan: %s", err)
 	}
 
-	d.Set("arn", resp.BackupPlanArn)
-	d.Set("name", resp.BackupPlan.BackupPlanName)
-	d.Set("version", resp.VersionId)
+	rule := &schema.Set{F: resourceAwsPlanRuleHash}
 
-	if err := d.Set("rule", flattenBackupPlanRules(resp.BackupPlan.Rules)); err != nil {
+	for _, r := range resp.BackupPlan.Rules {
+		m := make(map[string]interface{})
+
+		m["completion_window"] = aws.Int64Value(r.CompletionWindowMinutes)
+		m["recovery_point_tags"] = aws.StringValueMap(r.RecoveryPointTags)
+		m["rule_name"] = aws.StringValue(r.RuleName)
+		m["schedule"] = aws.StringValue(r.ScheduleExpression)
+		m["start_window"] = aws.Int64Value(r.StartWindowMinutes)
+		m["target_vault_name"] = aws.StringValue(r.TargetBackupVaultName)
+
+		if r.Lifecycle != nil {
+			l := make(map[string]interface{})
+			l["delete_after"] = aws.Int64Value(r.Lifecycle.DeleteAfterDays)
+			l["cold_storage_after"] = aws.Int64Value(r.Lifecycle.MoveToColdStorageAfterDays)
+			m["lifecycle"] = []interface{}{l}
+		}
+
+		rule.Add(m)
+	}
+	if err := d.Set("rule", rule); err != nil {
 		return fmt.Errorf("error setting rule: %s", err)
 	}
 
-	tags, err := keyvaluetags.BackupListTags(conn, d.Get("arn").(string))
+	tagsOutput, err := conn.ListTags(&backup.ListTagsInput{
+		ResourceArn: resp.BackupPlanArn,
+	})
 	if err != nil {
-		return fmt.Errorf("error listing tags for Backup Plan (%s): %s", d.Id(), err)
+		return fmt.Errorf("error listing tags AWS Backup plan %s: %s", d.Id(), err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+
+	if err := d.Set("tags", tagsToMapGeneric(tagsOutput.Tags)); err != nil {
+		return fmt.Errorf("error setting tags on AWS Backup plan %s: %s", d.Id(), err)
 	}
+
+	d.Set("arn", resp.BackupPlanArn)
+	d.Set("version", resp.VersionId)
 
 	return nil
 }
@@ -146,26 +182,63 @@ func resourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
 
-	if d.HasChange("rule") {
-		input := &backup.UpdateBackupPlanInput{
-			BackupPlanId: aws.String(d.Id()),
-			BackupPlan: &backup.PlanInput{
-				BackupPlanName: aws.String(d.Get("name").(string)),
-				Rules:          expandBackupPlanRules(d.Get("rule").(*schema.Set)),
-			},
-		}
+	plan := &backup.PlanInput{
+		BackupPlanName: aws.String(d.Get("name").(string)),
+	}
 
-		log.Printf("[DEBUG] Updating Backup Plan: %#v", input)
-		_, err := conn.UpdateBackupPlan(input)
-		if err != nil {
-			return fmt.Errorf("error updating Backup Plan (%s): %s", d.Id(), err)
-		}
+	rules := expandBackupPlanRules(d.Get("rule").(*schema.Set).List())
+
+	plan.Rules = rules
+
+	input := &backup.UpdateBackupPlanInput{
+		BackupPlanId: aws.String(d.Id()),
+		BackupPlan:   plan,
+	}
+
+	_, err := conn.UpdateBackupPlan(input)
+	if err != nil {
+		return fmt.Errorf("error updating Backup Plan: %s", err)
 	}
 
 	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-		if err := keyvaluetags.BackupUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating tags for Backup Plan (%s): %s", d.Id(), err)
+		resourceArn := d.Get("arn").(string)
+		oraw, nraw := d.GetChange("tags")
+		create, remove := diffTagsGeneric(oraw.(map[string]interface{}), nraw.(map[string]interface{}))
+
+		if len(remove) > 0 {
+			log.Printf("[DEBUG] Removing tags: %#v", remove)
+			keys := make([]*string, 0, len(remove))
+			for k := range remove {
+				keys = append(keys, aws.String(k))
+			}
+
+			_, err := conn.UntagResource(&backup.UntagResourceInput{
+				ResourceArn: aws.String(resourceArn),
+				TagKeyList:  keys,
+			})
+			if isAWSErr(err, backup.ErrCodeResourceNotFoundException, "") {
+				log.Printf("[WARN] Backup Plan %s not found, removing from state", d.Id())
+				d.SetId("")
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("Error removing tags for (%s): %s", d.Id(), err)
+			}
+		}
+		if len(create) > 0 {
+			log.Printf("[DEBUG] Creating tags: %#v", create)
+			_, err := conn.TagResource(&backup.TagResourceInput{
+				ResourceArn: aws.String(resourceArn),
+				Tags:        create,
+			})
+			if isAWSErr(err, backup.ErrCodeResourceNotFoundException, "") {
+				log.Printf("[WARN] Backup Plan %s not found, removing from state", d.Id())
+				d.SetId("")
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("Error setting tags for (%s): %s", d.Id(), err)
+			}
 		}
 	}
 
@@ -175,64 +248,66 @@ func resourceAwsBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error
 func resourceAwsBackupPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
 
-	log.Printf("[DEBUG] Deleting Backup Plan: %s", d.Id())
-	_, err := conn.DeleteBackupPlan(&backup.DeleteBackupPlanInput{
+	input := &backup.DeleteBackupPlanInput{
 		BackupPlanId: aws.String(d.Id()),
-	})
+	}
+
+	_, err := conn.DeleteBackupPlan(input)
 	if isAWSErr(err, backup.ErrCodeResourceNotFoundException, "") {
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting Backup Plan (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting Backup Plan: %s", err)
 	}
 
 	return nil
 }
 
-func expandBackupPlanRules(vRules *schema.Set) []*backup.RuleInput {
+func expandBackupPlanRules(l []interface{}) []*backup.RuleInput {
 	rules := []*backup.RuleInput{}
 
-	for _, vRule := range vRules.List() {
+	for _, i := range l {
+		item := i.(map[string]interface{})
 		rule := &backup.RuleInput{}
 
-		mRule := vRule.(map[string]interface{})
-
-		if vRuleName, ok := mRule["rule_name"].(string); ok && vRuleName != "" {
-			rule.RuleName = aws.String(vRuleName)
-		} else {
-			continue
+		if item["rule_name"] != "" {
+			rule.RuleName = aws.String(item["rule_name"].(string))
 		}
-		if vTargetVaultName, ok := mRule["target_vault_name"].(string); ok && vTargetVaultName != "" {
-			rule.TargetBackupVaultName = aws.String(vTargetVaultName)
+		if item["target_vault_name"] != "" {
+			rule.TargetBackupVaultName = aws.String(item["target_vault_name"].(string))
 		}
-		if vSchedule, ok := mRule["schedule"].(string); ok && vSchedule != "" {
-			rule.ScheduleExpression = aws.String(vSchedule)
+		if item["schedule"] != "" {
+			rule.ScheduleExpression = aws.String(item["schedule"].(string))
 		}
-		if vStartWindow, ok := mRule["start_window"].(int); ok {
-			rule.StartWindowMinutes = aws.Int64(int64(vStartWindow))
+		if item["start_window"] != nil {
+			rule.StartWindowMinutes = aws.Int64(int64(item["start_window"].(int)))
 		}
-		if vCompletionWindow, ok := mRule["completion_window"].(int); ok {
-			rule.CompletionWindowMinutes = aws.Int64(int64(vCompletionWindow))
+		if item["completion_window"] != nil {
+			rule.CompletionWindowMinutes = aws.Int64(int64(item["completion_window"].(int)))
 		}
 
-		if vRecoveryPointTags, ok := mRule["recovery_point_tags"].(map[string]interface{}); ok && len(vRecoveryPointTags) > 0 {
-			rule.RecoveryPointTags = tagsFromMapGeneric(vRecoveryPointTags)
+		if item["recovery_point_tags"] != nil {
+			rule.RecoveryPointTags = tagsFromMapGeneric(item["recovery_point_tags"].(map[string]interface{}))
 		}
 
-		if vLifecycle, ok := mRule["lifecycle"].([]interface{}); ok && len(vLifecycle) > 0 && vLifecycle[0] != nil {
-			lifecycle := &backup.Lifecycle{}
+		var lifecycle map[string]interface{}
+		if i.(map[string]interface{})["lifecycle"] != nil {
+			lifecycleRaw := i.(map[string]interface{})["lifecycle"].([]interface{})
+			if len(lifecycleRaw) == 1 {
+				lifecycle = lifecycleRaw[0].(map[string]interface{})
+				lcValues := &backup.Lifecycle{}
 
-			mLifecycle := vLifecycle[0].(map[string]interface{})
+				if v, ok := lifecycle["delete_after"]; ok && v.(int) > 0 {
+					lcValues.DeleteAfterDays = aws.Int64(int64(v.(int)))
+				}
 
-			if vDeleteAfter, ok := mLifecycle["delete_after"].(int); ok && vDeleteAfter > 0 {
-				lifecycle.DeleteAfterDays = aws.Int64(int64(vDeleteAfter))
+				if v, ok := lifecycle["cold_storage_after"]; ok && v.(int) > 0 {
+					lcValues.MoveToColdStorageAfterDays = aws.Int64(int64(v.(int)))
+				}
+				rule.Lifecycle = lcValues
 			}
-			if vColdStorageAfter, ok := mLifecycle["cold_storage_after"].(int); ok && vColdStorageAfter > 0 {
-				lifecycle.MoveToColdStorageAfterDays = aws.Int64(int64(vColdStorageAfter))
-			}
 
-			rule.Lifecycle = lifecycle
 		}
 
 		rules = append(rules, rule)
@@ -241,68 +316,46 @@ func expandBackupPlanRules(vRules *schema.Set) []*backup.RuleInput {
 	return rules
 }
 
-func flattenBackupPlanRules(rules []*backup.Rule) *schema.Set {
-	vRules := []interface{}{}
+func resourceAwsPlanRuleHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
 
-	for _, rule := range rules {
-		mRule := map[string]interface{}{
-			"rule_name":           aws.StringValue(rule.RuleName),
-			"target_vault_name":   aws.StringValue(rule.TargetBackupVaultName),
-			"schedule":            aws.StringValue(rule.ScheduleExpression),
-			"start_window":        int(aws.Int64Value(rule.StartWindowMinutes)),
-			"completion_window":   int(aws.Int64Value(rule.CompletionWindowMinutes)),
-			"recovery_point_tags": tagsToMapGeneric(rule.RecoveryPointTags),
-		}
+	if v.(map[string]interface{})["lifecycle"] != nil {
+		lcRaw := v.(map[string]interface{})["lifecycle"].([]interface{})
+		if len(lcRaw) == 1 {
+			l := lcRaw[0].(map[string]interface{})
+			if w, ok := l["delete_after"]; ok {
+				buf.WriteString(fmt.Sprintf("%v-", w))
+			}
 
-		if lifecycle := rule.Lifecycle; lifecycle != nil {
-			mRule["lifecycle"] = []interface{}{
-				map[string]interface{}{
-					"delete_after":       int(aws.Int64Value(lifecycle.DeleteAfterDays)),
-					"cold_storage_after": int(aws.Int64Value(lifecycle.MoveToColdStorageAfterDays)),
-				},
+			if w, ok := l["cold_storage_after"]; ok {
+				buf.WriteString(fmt.Sprintf("%v-", w))
 			}
 		}
-
-		vRules = append(vRules, mRule)
 	}
 
-	return schema.NewSet(backupBackupPlanHash, vRules)
-}
-
-func backupBackupPlanHash(vRule interface{}) int {
-	var buf bytes.Buffer
-
-	mRule := vRule.(map[string]interface{})
-
-	if v, ok := mRule["rule_name"].(string); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v))
-	}
-	if v, ok := mRule["target_vault_name"].(string); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v))
-	}
-	if v, ok := mRule["schedule"].(string); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v))
-	}
-	if v, ok := mRule["start_window"].(int); ok {
-		buf.WriteString(fmt.Sprintf("%d-", v))
-	}
-	if v, ok := mRule["completion_window"].(int); ok {
-		buf.WriteString(fmt.Sprintf("%d-", v))
+	if v, ok := m["completion_window"]; ok {
+		buf.WriteString(fmt.Sprintf("%d-", v.(interface{})))
 	}
 
-	if vRecoveryPointTags, ok := mRule["recovery_point_tags"].(map[string]interface{}); ok && len(vRecoveryPointTags) > 0 {
-		buf.WriteString(fmt.Sprintf("%d-", tagsMapToHash(vRecoveryPointTags)))
+	if v, ok := m["recovery_point_tags"]; ok {
+		buf.WriteString(fmt.Sprintf("%v-", v))
 	}
 
-	if vLifecycle, ok := mRule["lifecycle"].([]interface{}); ok && len(vLifecycle) > 0 && vLifecycle[0] != nil {
-		mLifecycle := vLifecycle[0].(map[string]interface{})
+	if v, ok := m["rule_name"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
 
-		if v, ok := mLifecycle["delete_after"].(int); ok {
-			buf.WriteString(fmt.Sprintf("%d-", v))
-		}
-		if v, ok := mLifecycle["cold_storage_after"].(int); ok {
-			buf.WriteString(fmt.Sprintf("%d-", v))
-		}
+	if v, ok := m["schedule"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
+	if v, ok := m["start_window"]; ok {
+		buf.WriteString(fmt.Sprintf("%d-", v.(interface{})))
+	}
+
+	if v, ok := m["target_vault_name"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
 
 	return hashcode.String(buf.String())

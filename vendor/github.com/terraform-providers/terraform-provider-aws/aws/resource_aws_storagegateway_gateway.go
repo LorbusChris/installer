@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsStorageGatewayGateway() *schema.Resource {
@@ -123,7 +122,6 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 					"IBM-ULT3580-TD5",
 				}, false),
 			},
-			"tags": tagsSchema(),
 		},
 	}
 }
@@ -198,7 +196,6 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 		GatewayName:     aws.String(d.Get("gateway_name").(string)),
 		GatewayTimezone: aws.String(d.Get("gateway_timezone").(string)),
 		GatewayType:     aws.String(d.Get("gateway_type").(string)),
-		Tags:            keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().StoragegatewayTags(),
 	}
 
 	if v, ok := d.GetOk("medium_changer_type"); ok {
@@ -293,10 +290,6 @@ func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error reading Storage Gateway Gateway: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.StoragegatewayKeyValueTags(output.Tags).IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
-
 	smbSettingsInput := &storagegateway.DescribeSMBSettingsInput{
 		GatewayARN: aws.String(d.Id()),
 	}
@@ -389,13 +382,6 @@ func resourceAwsStorageGatewayGatewayUpdate(d *schema.ResourceData, meta interfa
 		_, err := conn.UpdateGatewayInformation(input)
 		if err != nil {
 			return fmt.Errorf("error updating Storage Gateway Gateway: %s", err)
-		}
-	}
-
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-		if err := keyvaluetags.StoragegatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
 		}
 	}
 

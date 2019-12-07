@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -16,19 +15,12 @@ func resourceAwsWafGeoMatchSet() *schema.Resource {
 		Read:   resourceAwsWafGeoMatchSetRead,
 		Update: resourceAwsWafGeoMatchSetUpdate,
 		Delete: resourceAwsWafGeoMatchSetDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-			},
-			"arn": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"geo_match_constraint": {
 				Type:     schema.TypeSet,
@@ -83,7 +75,9 @@ func resourceAwsWafGeoMatchSetRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := conn.GetGeoMatchSet(params)
 	if err != nil {
-		if isAWSErr(err, waf.ErrCodeNonexistentItemException, "") {
+		// TODO: Replace with constant once it's available
+		// See https://github.com/aws/aws-sdk-go/issues/1856
+		if isAWSErr(err, "WAFNonexistentItemException", "") {
 			log.Printf("[WARN] WAF GeoMatchSet (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -94,14 +88,6 @@ func resourceAwsWafGeoMatchSetRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.GeoMatchSet.Name)
 	d.Set("geo_match_constraint", flattenWafGeoMatchConstraint(resp.GeoMatchSet.GeoMatchConstraints))
-
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Service:   "waf",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("geomatchset/%s", d.Id()),
-	}
-	d.Set("arn", arn.String())
 
 	return nil
 }

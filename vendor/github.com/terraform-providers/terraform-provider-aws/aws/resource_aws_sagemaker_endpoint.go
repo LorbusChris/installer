@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSagemakerEndpoint() *schema.Resource {
@@ -62,7 +61,7 @@ func resourceAwsSagemakerEndpointCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
-		createOpts.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
+		createOpts.Tags = tagsFromMapSagemaker(v.(map[string]interface{}))
 	}
 
 	log.Printf("[DEBUG] SageMaker Endpoint create config: %#v", *createOpts)
@@ -117,13 +116,15 @@ func resourceAwsSagemakerEndpointRead(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	tags, err := keyvaluetags.SagemakerListTags(conn, aws.StringValue(endpoint.EndpointArn))
+	tagsOutput, err := conn.ListTags(&sagemaker.ListTagsInput{
+		ResourceArn: endpoint.EndpointArn,
+	})
 	if err != nil {
-		return fmt.Errorf("error listing tags for Sagemaker Endpoint (%s): %s", d.Id(), err)
+		return fmt.Errorf("error listing tags for SageMaker Endpoint (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	if err := d.Set("tags", tagsToMapSagemaker(tagsOutput.Tags)); err != nil {
+		return err
 	}
 
 	return nil
@@ -134,12 +135,8 @@ func resourceAwsSagemakerEndpointUpdate(d *schema.ResourceData, meta interface{}
 
 	d.Partial(true)
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-
-		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating Sagemaker Endpoint (%s) tags: %s", d.Id(), err)
-		}
+	if err := setSagemakerTags(conn, d); err != nil {
+		return err
 	}
 	d.SetPartial("tags")
 

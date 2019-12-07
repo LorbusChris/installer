@@ -329,9 +329,6 @@ func resourceAwsSsmMaintenanceWindowTask() *schema.Resource {
 }
 
 func expandAwsSsmMaintenanceWindowLoggingInfo(config []interface{}) *ssm.LoggingInfo {
-	if len(config) == 0 || config[0] == nil {
-		return nil
-	}
 
 	loggingConfig := config[0].(map[string]interface{})
 
@@ -385,10 +382,6 @@ func flattenAwsSsmTaskParameters(taskParameters map[string]*ssm.MaintenanceWindo
 }
 
 func expandAwsSsmTaskInvocationParameters(config []interface{}) *ssm.MaintenanceWindowTaskInvocationParameters {
-	if len(config) == 0 || config[0] == nil {
-		return nil
-	}
-
 	params := &ssm.MaintenanceWindowTaskInvocationParameters{}
 	for _, v := range config {
 		paramConfig := v.(map[string]interface{})
@@ -430,10 +423,6 @@ func flattenAwsSsmTaskInvocationParameters(parameters *ssm.MaintenanceWindowTask
 }
 
 func expandAwsSsmTaskInvocationAutomationParameters(config []interface{}) *ssm.MaintenanceWindowAutomationParameters {
-	if len(config) == 0 || config[0] == nil {
-		return nil
-	}
-
 	params := &ssm.MaintenanceWindowAutomationParameters{}
 	configParam := config[0].(map[string]interface{})
 	if attr, ok := configParam["document_version"]; ok && len(attr.(string)) != 0 {
@@ -460,10 +449,6 @@ func flattenAwsSsmTaskInvocationAutomationParameters(parameters *ssm.Maintenance
 }
 
 func expandAwsSsmTaskInvocationLambdaParameters(config []interface{}) *ssm.MaintenanceWindowLambdaParameters {
-	if len(config) == 0 || config[0] == nil {
-		return nil
-	}
-
 	params := &ssm.MaintenanceWindowLambdaParameters{}
 	configParam := config[0].(map[string]interface{})
 	if attr, ok := configParam["client_context"]; ok && len(attr.(string)) != 0 {
@@ -494,10 +479,6 @@ func flattenAwsSsmTaskInvocationLambdaParameters(parameters *ssm.MaintenanceWind
 }
 
 func expandAwsSsmTaskInvocationRunCommandParameters(config []interface{}) *ssm.MaintenanceWindowRunCommandParameters {
-	if len(config) == 0 || config[0] == nil {
-		return nil
-	}
-
 	params := &ssm.MaintenanceWindowRunCommandParameters{}
 	configParam := config[0].(map[string]interface{})
 	if attr, ok := configParam["comment"]; ok && len(attr.(string)) != 0 {
@@ -565,10 +546,6 @@ func flattenAwsSsmTaskInvocationRunCommandParameters(parameters *ssm.Maintenance
 }
 
 func expandAwsSsmTaskInvocationStepFunctionsParameters(config []interface{}) *ssm.MaintenanceWindowStepFunctionsParameters {
-	if len(config) == 0 || config[0] == nil {
-		return nil
-	}
-
 	params := &ssm.MaintenanceWindowStepFunctionsParameters{}
 	configParam := config[0].(map[string]interface{})
 
@@ -595,10 +572,6 @@ func flattenAwsSsmTaskInvocationStepFunctionsParameters(parameters *ssm.Maintena
 }
 
 func expandAwsSsmTaskInvocationRunCommandParametersNotificationConfig(config []interface{}) *ssm.NotificationConfig {
-	if len(config) == 0 || config[0] == nil {
-		return nil
-	}
-
 	params := &ssm.NotificationConfig{}
 	configParam := config[0].(map[string]interface{})
 
@@ -632,10 +605,6 @@ func flattenAwsSsmTaskInvocationRunCommandParametersNotificationConfig(config *s
 }
 
 func expandAwsSsmTaskInvocationCommonParameters(config []interface{}) map[string][]*string {
-	if len(config) == 0 || config[0] == nil {
-		return nil
-	}
-
 	params := make(map[string][]*string)
 
 	for _, v := range config {

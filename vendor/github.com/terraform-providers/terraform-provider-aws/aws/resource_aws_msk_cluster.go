@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsMskCluster() *schema.Resource {
@@ -228,7 +227,7 @@ func resourceAwsMskClusterCreate(d *schema.ResourceData, meta interface{}) error
 		EnhancedMonitoring:   aws.String(d.Get("enhanced_monitoring").(string)),
 		KafkaVersion:         aws.String(d.Get("kafka_version").(string)),
 		NumberOfBrokerNodes:  aws.Int64(int64(d.Get("number_of_broker_nodes").(int))),
-		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().KafkaTags(),
+		Tags:                 tagsFromMapMskCluster(d.Get("tags").(map[string]interface{})),
 	}
 
 	out, err := conn.CreateCluster(input)
@@ -339,7 +338,7 @@ func resourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("kafka_version", aws.StringValue(cluster.CurrentBrokerSoftwareInfo.KafkaVersion))
 	d.Set("number_of_broker_nodes", aws.Int64Value(cluster.NumberOfBrokerNodes))
 
-	if err := d.Set("tags", keyvaluetags.KafkaKeyValueTags(cluster.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tagsToMapMskCluster(cluster.Tags)); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -405,10 +404,8 @@ func resourceAwsMskClusterUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-
-		if err := keyvaluetags.KafkaUpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating MSK Cluster (%s) tags: %s", d.Id(), err)
+		if err := setTagsMskCluster(conn, d, d.Id()); err != nil {
+			return fmt.Errorf("failed updating tags for msk cluster %q: %s", d.Id(), err)
 		}
 	}
 

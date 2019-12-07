@@ -72,7 +72,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/aws/aws-sdk-go/service/greengrass"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/inspector"
@@ -140,7 +139,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/xray"
 	awsbase "github.com/hashicorp/aws-sdk-go-base"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 type Config struct {
@@ -160,10 +158,8 @@ type Config struct {
 	AllowedAccountIds   []string
 	ForbiddenAccountIds []string
 
-	Endpoints         map[string]string
-	IgnoreTagPrefixes []string
-	IgnoreTags        []string
-	Insecure          bool
+	Endpoints map[string]string
+	Insecure  bool
 
 	SkipCredsValidation     bool
 	SkipGetEC2Platforms     bool
@@ -242,10 +238,7 @@ type AWSClient struct {
 	globalacceleratorconn               *globalaccelerator.GlobalAccelerator
 	glueconn                            *glue.Glue
 	guarddutyconn                       *guardduty.GuardDuty
-	greengrassconn                      *greengrass.Greengrass
 	iamconn                             *iam.IAM
-	ignoreTagPrefixes                   keyvaluetags.KeyValueTags
-	ignoreTags                          keyvaluetags.KeyValueTags
 	inspectorconn                       *inspector.Inspector
 	iotconn                             *iot.IoT
 	iotanalyticsconn                    *iotanalytics.IoTAnalytics
@@ -438,10 +431,7 @@ func (c *Config) Client() (interface{}, error) {
 		glacierconn:                         glacier.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["glacier"])})),
 		glueconn:                            glue.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["glue"])})),
 		guarddutyconn:                       guardduty.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["guardduty"])})),
-		greengrassconn:                      greengrass.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["greengrass"])})),
 		iamconn:                             iam.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["iam"])})),
-		ignoreTagPrefixes:                   keyvaluetags.New(c.IgnoreTagPrefixes),
-		ignoreTags:                          keyvaluetags.New(c.IgnoreTags),
 		inspectorconn:                       inspector.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["inspector"])})),
 		iotconn:                             iot.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["iot"])})),
 		iotanalyticsconn:                    iotanalytics.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["iotanalytics"])})),

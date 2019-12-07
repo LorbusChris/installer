@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSfnActivity() *schema.Resource {
@@ -47,7 +46,7 @@ func resourceAwsSfnActivityCreate(d *schema.ResourceData, meta interface{}) erro
 
 	params := &sfn.CreateActivityInput{
 		Name: aws.String(d.Get("name").(string)),
-		Tags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().SfnTags(),
+		Tags: tagsFromMapSfn(d.Get("tags").(map[string]interface{})),
 	}
 
 	activity, err := conn.CreateActivity(params)
@@ -64,9 +63,38 @@ func resourceAwsSfnActivityUpdate(d *schema.ResourceData, meta interface{}) erro
 	conn := meta.(*AWSClient).sfnconn
 
 	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-		if err := keyvaluetags.SfnUpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
+		oldTagsRaw, newTagsRaw := d.GetChange("tags")
+		oldTagsMap := oldTagsRaw.(map[string]interface{})
+		newTagsMap := newTagsRaw.(map[string]interface{})
+		createTags, removeTags := diffTagsSfn(tagsFromMapSfn(oldTagsMap), tagsFromMapSfn(newTagsMap))
+
+		if len(removeTags) > 0 {
+			removeTagKeys := make([]*string, len(removeTags))
+			for i, removeTag := range removeTags {
+				removeTagKeys[i] = removeTag.Key
+			}
+
+			input := &sfn.UntagResourceInput{
+				ResourceArn: aws.String(d.Id()),
+				TagKeys:     removeTagKeys,
+			}
+
+			log.Printf("[DEBUG] Untagging State Function Activity: %s", input)
+			if _, err := conn.UntagResource(input); err != nil {
+				return fmt.Errorf("error untagging State Function Activity (%s): %s", d.Id(), err)
+			}
+		}
+
+		if len(createTags) > 0 {
+			input := &sfn.TagResourceInput{
+				ResourceArn: aws.String(d.Id()),
+				Tags:        createTags,
+			}
+
+			log.Printf("[DEBUG] Tagging State Function Activity: %s", input)
+			if _, err := conn.TagResource(input); err != nil {
+				return fmt.Errorf("error tagging State Function Activity (%s): %s", d.Id(), err)
+			}
 		}
 	}
 
@@ -94,13 +122,17 @@ func resourceAwsSfnActivityRead(d *schema.ResourceData, meta interface{}) error 
 		log.Printf("[DEBUG] Error setting creation_date: %s", err)
 	}
 
-	tags, err := keyvaluetags.SfnListTags(conn, d.Id())
+	tagsResp, err := conn.ListTagsForResource(
+		&sfn.ListTagsForResourceInput{
+			ResourceArn: aws.String(d.Id()),
+		},
+	)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for SFN Activity (%s): %s", d.Id(), err)
+		return fmt.Errorf("error listing SFN Activity (%s) tags: %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tagsToMapSfn(tagsResp.Tags)); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

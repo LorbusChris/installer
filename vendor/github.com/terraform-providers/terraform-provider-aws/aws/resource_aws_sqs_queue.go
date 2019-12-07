@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 var sqsQueueAttributeMap = map[string]string{
@@ -174,7 +173,7 @@ func resourceAwsSqsQueueCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Tag-on-create is currently only supported in AWS Commercial
 	if v, ok := d.GetOk("tags"); ok && meta.(*AWSClient).partition == endpoints.AwsPartitionID {
-		req.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SqsTags()
+		req.Tags = tagsFromMapGeneric(v.(map[string]interface{}))
 	}
 
 	attributes := make(map[string]*string)
@@ -233,12 +232,8 @@ func resourceAwsSqsQueueCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsSqsQueueUpdate(d *schema.ResourceData, meta interface{}) error {
 	sqsconn := meta.(*AWSClient).sqsconn
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-
-		if err := keyvaluetags.SqsUpdateTags(sqsconn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating SQS Queue (%s) tags: %s", d.Id(), err)
-		}
+	if err := setTagsSQS(sqsconn, d); err != nil {
+		return err
 	}
 
 	attributes := make(map[string]*string)
@@ -286,7 +281,7 @@ func resourceAwsSqsQueueRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			log.Printf("ERROR Found %s", awsErr.Code())
-			if awsErr.Code() == sqs.ErrCodeQueueDoesNotExist {
+			if awsErr.Code() == "AWS.SimpleQueueService.NonExistentQueue" {
 				d.SetId("")
 				log.Printf("[DEBUG] SQS Queue (%s) not found", d.Get("name").(string))
 				return nil
@@ -415,20 +410,21 @@ func resourceAwsSqsQueueRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	tags, err := keyvaluetags.SqsListTags(sqsconn, d.Id())
-
+	tags := make(map[string]string)
+	listTagsOutput, err := sqsconn.ListQueueTags(&sqs.ListQueueTagsInput{
+		QueueUrl: aws.String(d.Id()),
+	})
 	if err != nil {
 		// Non-standard partitions (e.g. US Gov) and some local development
 		// solutions do not yet support this API call. Depending on the
 		// implementation it may return InvalidAction or AWS.SimpleQueueService.UnsupportedOperation
 		if !isAWSErr(err, "InvalidAction", "") && !isAWSErr(err, sqs.ErrCodeUnsupportedOperation, "") {
-			return fmt.Errorf("error listing tags for SQS Queue (%s): %s", d.Id(), err)
+			return err
 		}
+	} else {
+		tags = tagsToMapGeneric(listTagsOutput.Tags)
 	}
-
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
+	d.Set("tags", tags)
 
 	return nil
 }
@@ -456,4 +452,40 @@ func extractNameFromSqsQueueUrl(queue string) (string, error) {
 
 	return segments[2], nil
 
+}
+
+func setTagsSQS(conn *sqs.SQS, d *schema.ResourceData) error {
+	if d.HasChange("tags") {
+		oraw, nraw := d.GetChange("tags")
+		create, remove := diffTagsGeneric(oraw.(map[string]interface{}), nraw.(map[string]interface{}))
+
+		if len(remove) > 0 {
+			log.Printf("[DEBUG] Removing tags: %#v", remove)
+			keys := make([]*string, 0, len(remove))
+			for k := range remove {
+				keys = append(keys, aws.String(k))
+			}
+
+			_, err := conn.UntagQueue(&sqs.UntagQueueInput{
+				QueueUrl: aws.String(d.Id()),
+				TagKeys:  keys,
+			})
+			if err != nil {
+				return err
+			}
+		}
+		if len(create) > 0 {
+			log.Printf("[DEBUG] Creating tags: %#v", create)
+
+			_, err := conn.TagQueue(&sqs.TagQueueInput{
+				QueueUrl: aws.String(d.Id()),
+				Tags:     create,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

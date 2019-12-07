@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 const rdsClusterParameterGroupMaxParamsBulkEdit = 20
@@ -89,6 +88,7 @@ func resourceAwsRDSClusterParameterGroup() *schema.Resource {
 
 func resourceAwsRDSClusterParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	rdsconn := meta.(*AWSClient).rdsconn
+	tags := tagsFromMapRDS(d.Get("tags").(map[string]interface{}))
 
 	var groupName string
 	if v, ok := d.GetOk("name"); ok {
@@ -103,7 +103,7 @@ func resourceAwsRDSClusterParameterGroupCreate(d *schema.ResourceData, meta inte
 		DBClusterParameterGroupName: aws.String(groupName),
 		DBParameterGroupFamily:      aws.String(d.Get("family").(string)),
 		Description:                 aws.String(d.Get("description").(string)),
-		Tags:                        keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags(),
+		Tags:                        tags,
 	}
 
 	log.Printf("[DEBUG] Create DB Cluster Parameter Group: %#v", createOpts)
@@ -170,9 +170,11 @@ func resourceAwsRDSClusterParameterGroupRead(d *schema.ResourceData, meta interf
 		log.Printf("[DEBUG] Error retrieving tags for ARN: %s", arn)
 	}
 
-	if err := d.Set("tags", keyvaluetags.RdsKeyValueTags(resp.TagList).IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	var dt []*rds.Tag
+	if len(resp.TagList) > 0 {
+		dt = resp.TagList
 	}
+	d.Set("tags", tagsToMapRDS(dt))
 
 	return nil
 }
@@ -226,12 +228,9 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-
-		if err := keyvaluetags.RdsUpdateTags(rdsconn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating RDS Cluster Parameter Group (%s) tags: %s", d.Id(), err)
-		}
+	if err := setTagsRDS(rdsconn, d, d.Get("arn").(string)); err != nil {
+		return err
+	} else {
 		d.SetPartial("tags")
 	}
 

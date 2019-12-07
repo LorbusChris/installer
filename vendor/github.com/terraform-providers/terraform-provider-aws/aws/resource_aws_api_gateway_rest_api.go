@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsApiGatewayRestApi() *schema.Resource {
@@ -39,11 +38,7 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 			"api_key_source": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigateway.ApiKeySourceTypeAuthorizer,
-					apigateway.ApiKeySourceTypeHeader,
-				}, true),
-				Default: apigateway.ApiKeySourceTypeHeader,
+				Default:  "HEADER",
 			},
 
 			"policy": {
@@ -110,11 +105,6 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 					},
 				},
 			},
-			"arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"tags": tagsSchema(),
 		},
 	}
 }
@@ -143,10 +133,6 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("policy"); ok && v.(string) != "" {
 		params.Policy = aws.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("tags"); ok {
-		params.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().ApigatewayTags()
 	}
 
 	binaryMediaTypes, binaryMediaTypesOk := d.GetOk("binary_media_types")
@@ -235,14 +221,14 @@ func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("binary_media_types", api.BinaryMediaTypes)
 
-	execution_arn := arn.ARN{
+	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Service:   "execute-api",
 		Region:    meta.(*AWSClient).region,
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  d.Id(),
 	}.String()
-	d.Set("execution_arn", execution_arn)
+	d.Set("execution_arn", arn)
 
 	if api.MinimumCompressionSize == nil {
 		d.Set("minimum_compression_size", -1)
@@ -256,18 +242,6 @@ func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) 
 	if err := d.Set("endpoint_configuration", flattenApiGatewayEndpointConfiguration(api.EndpointConfiguration)); err != nil {
 		return fmt.Errorf("error setting endpoint_configuration: %s", err)
 	}
-
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(api.Tags).IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
-
-	rest_api_arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Service:   "apigateway",
-		Region:    meta.(*AWSClient).region,
-		Resource:  fmt.Sprintf("/restapis/%s", d.Id()),
-	}.String()
-	d.Set("arn", rest_api_arn)
 
 	return nil
 }
@@ -367,13 +341,6 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigateway
 	log.Printf("[DEBUG] Updating API Gateway %s", d.Id())
-
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-		if err := keyvaluetags.ApigatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
-		}
-	}
 
 	if d.HasChange("body") {
 		if body, ok := d.GetOk("body"); ok {

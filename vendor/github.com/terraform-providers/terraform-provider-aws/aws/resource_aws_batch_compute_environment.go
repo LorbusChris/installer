@@ -75,18 +75,15 @@ func resourceAwsBatchComputeEnvironment() *schema.Resource {
 										Type:          schema.TypeString,
 										Optional:      true,
 										ConflictsWith: []string{"compute_resources.0.launch_template.0.launch_template_name"},
-										ForceNew:      true,
 									},
 									"launch_template_name": {
 										Type:          schema.TypeString,
 										Optional:      true,
 										ConflictsWith: []string{"compute_resources.0.launch_template.0.launch_template_id"},
-										ForceNew:      true,
 									},
 									"version": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -117,7 +114,7 @@ func resourceAwsBatchComputeEnvironment() *schema.Resource {
 							ForceNew: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
-						"tags": tagsSchemaForceNew(),
+						"tags": tagsSchema(),
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,

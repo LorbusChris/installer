@@ -28,10 +28,8 @@ func resourceAwsIamGroupPolicy() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"policy": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateFunc:     validateIAMPolicyJson,
-				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"name": {
 				Type:          schema.TypeString,

@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"errors"
 	"strings"
 	"time"
 
@@ -14,9 +13,8 @@ import (
 //  * Error.Code() matches code
 //  * Error.Message() contains message
 func isAWSErr(err error, code string, message string) bool {
-	var awsErr awserr.Error
-	if errors.As(err, &awsErr) {
-		return awsErr.Code() == code && strings.Contains(awsErr.Message(), message)
+	if err, ok := err.(awserr.Error); ok {
+		return err.Code() == code && strings.Contains(err.Message(), message)
 	}
 	return false
 }
