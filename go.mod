@@ -43,13 +43,10 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20191106031601-ce3c9ade29de // indirect
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.12.1 // indirect
-	github.com/hashicorp/consul/api v1.3.0 // indirect
 	github.com/hashicorp/go-azure-helpers v0.10.0
 	github.com/hashicorp/go-plugin v1.0.1
 	github.com/hashicorp/go-retryablehttp v0.6.4 // indirect
 	github.com/hashicorp/logutils v1.0.0
-	github.com/hashicorp/memberlist v0.1.5 // indirect
-	github.com/hashicorp/serf v0.8.5 // indirect
 	github.com/hashicorp/terraform v0.12.17
 	github.com/hashicorp/terraform-plugin-sdk v1.4.0
 	github.com/hashicorp/vault v1.3.0 // indirect
@@ -145,6 +142,7 @@ replace (
 	github.com/golangci/gofmt => github.com/golangci/gofmt v0.0.0-20181222123516-0b8337e80d98
 	github.com/golangci/gosec => github.com/golangci/gosec v0.0.0-20190211064107-66fb7fc33547
 	github.com/h2non/gock => gopkg.in/h2non/gock.v1 v1.0.15
+	github.com/hashicorp/consul => github.com/hashicorp/consul v1.6.2
 	github.com/improbable-eng/thanos => github.com/thanos-io/thanos v0.9.0
 	github.com/kshvakov/clickhouse => github.com/ClickHouse/clickhouse-go v1.3.12
 	github.com/maxbrunsfeld/counterfeiter => github.com/maxbrunsfeld/counterfeiter/v6 v6.2.3-0.20191116041609-a931625b7c1f
