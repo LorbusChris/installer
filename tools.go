@@ -9,5 +9,4 @@ import (
 	_ "github.com/shurcooL/httpfs/vfsutil"
 	_ "github.com/shurcooL/vfsgen"
 	_ "golang.org/x/lint"
-	_ "golang.org/x/tools"
 )

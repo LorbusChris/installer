@@ -62,7 +62,6 @@ require (
 	github.com/masterzen/winrm v0.0.0-20190308153735-1d17eaf15943 // indirect
 	github.com/metal3-io/baremetal-operator v0.0.0
 	github.com/metal3-io/cluster-api-provider-baremetal v0.0.0
-	github.com/miekg/dns v1.1.24 // indirect
 	github.com/mitchellh/cli v1.0.0
 	github.com/mitchellh/packer v1.4.5 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
@@ -143,6 +142,7 @@ replace (
 	github.com/golangci/gosec => github.com/golangci/gosec v0.0.0-20190211064107-66fb7fc33547
 	github.com/h2non/gock => gopkg.in/h2non/gock.v1 v1.0.15
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.6.2
+	github.com/hashicorp/terraform => github.com/LorbusChris/terraform v0.12.18-0.20191207204959-942ad0779988
 	github.com/improbable-eng/thanos => github.com/thanos-io/thanos v0.9.0
 	github.com/kshvakov/clickhouse => github.com/ClickHouse/clickhouse-go v1.3.12
 	github.com/kubernetes-sigs/aws-iam-authenticator => github.com/kubernetes-sigs/aws-iam-authenticator v0.3.1-0.20181019024009-82544ec86140
@@ -155,7 +155,6 @@ replace (
 	github.com/renstrom/fuzzysearch => github.com/lithammer/fuzzysearch v1.0.2
 	github.com/terraform-providers/terraform-provider-ignition => github.com/LorbusChris/terraform-provider-ignition v1.0.2-0.20191206045501-a97472b5f449
 	github.com/uber-go/atomic => go.uber.org/atomic v1.5.1
-	golang.org/x/tools => golang.org/x/tools v0.0.0-20191112202413-08e24063958e
 	google.golang.org/api => google.golang.org/api v0.11.1-0.20191012001332-5e0e3f4a3bb8
 	gopkg.in/asn1-ber.v1 => github.com/go-asn1-ber/asn1-ber v1.3.1
 	gopkg.in/jarcoal/httpmock.v1 => github.com/jarcoal/httpmock v1.0.4
