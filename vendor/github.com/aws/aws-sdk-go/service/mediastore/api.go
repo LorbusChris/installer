@@ -963,12 +963,10 @@ func (c *MediaStore) ListContainersPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListContainersOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListContainersOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1572,7 +1570,7 @@ func (c *MediaStore) TagResourceRequest(input *TagResourceInput) (req *request.R
 // might be "customer" and the tag value might be "companyA." You can specify
 // one or more tags to add to each container. You can add up to 50 tags to each
 // container. For more information about tagging, including naming and usage
-// conventions, see Tagging Resources in MediaStore (https://docs.aws.amazon.com/mediastore/latest/ug/tagging.html).
+// conventions, see Tagging Resources in MediaStore (https://aws.amazon.com/documentation/mediastore/tagging).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1911,7 +1909,7 @@ type CreateContainerInput struct {
 	// and the tag value represents a specific value within that category (such
 	// as "test," "development," or "production"). You can add up to 50 tags to
 	// each container. For more information about tagging, including naming and
-	// usage conventions, see Tagging Resources in MediaStore (https://docs.aws.amazon.com/mediastore/latest/ug/tagging.html).
+	// usage conventions, see Tagging Resources in MediaStore (https://aws.amazon.com/documentation/mediastore/tagging).
 	Tags []*Tag `type:"list"`
 }
 
@@ -2975,15 +2973,13 @@ func (s StopAccessLoggingOutput) GoString() string {
 // a specific value within that category (such as "test," "development," or
 // "production"). You can add up to 50 tags to each container. For more information
 // about tagging, including naming and usage conventions, see Tagging Resources
-// in MediaStore (https://docs.aws.amazon.com/mediastore/latest/ug/tagging.html).
+// in MediaStore (https://aws.amazon.com/documentation/mediastore/tagging).
 type Tag struct {
 	_ struct{} `type:"structure"`
 
 	// Part of the key:value pair that defines a tag. You can use a tag key to describe
 	// a category of information, such as "customer." Tag keys are case-sensitive.
-	//
-	// Key is a required field
-	Key *string `min:"1" type:"string" required:"true"`
+	Key *string `min:"1" type:"string"`
 
 	// Part of the key:value pair that defines a tag. You can use a tag value to
 	// describe a specific value within a category, such as "companyA" or "companyB."
@@ -3004,9 +3000,6 @@ func (s Tag) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *Tag) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "Tag"}
-	if s.Key == nil {
-		invalidParams.Add(request.NewErrParamRequired("Key"))
-	}
 	if s.Key != nil && len(*s.Key) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
 	}

@@ -22,10 +22,6 @@
 //
 //    * Custom resources provided by your own applications or services
 //
-//    * Amazon Comprehend document classification endpoints
-//
-//    * AWS Lambda function provisioned concurrency
-//
 // API Summary
 //
 // The Application Auto Scaling service API includes three key sets of actions:

@@ -4,12 +4,6 @@ package budgets
 
 const (
 
-	// ErrCodeAccessDeniedException for service response error code
-	// "AccessDeniedException".
-	//
-	// You are not authorized to use this operation with the given parameters.
-	ErrCodeAccessDeniedException = "AccessDeniedException"
-
 	// ErrCodeCreationLimitExceededException for service response error code
 	// "CreationLimitExceededException".
 	//

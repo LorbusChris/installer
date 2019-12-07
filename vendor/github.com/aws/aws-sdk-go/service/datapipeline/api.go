@@ -624,12 +624,10 @@ func (c *DataPipeline) DescribeObjectsPagesWithContext(ctx aws.Context, input *D
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeObjectsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeObjectsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1054,12 +1052,10 @@ func (c *DataPipeline) ListPipelinesPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPipelinesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPipelinesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1405,12 +1401,10 @@ func (c *DataPipeline) QueryObjectsPagesWithContext(ctx aws.Context, input *Quer
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*QueryObjectsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*QueryObjectsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

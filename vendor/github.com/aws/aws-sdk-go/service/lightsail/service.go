@@ -39,8 +39,6 @@ const (
 // aws.Config parameter to add your extra config.
 //
 // Example:
-//     mySession := session.Must(session.NewSession())
-//
 //     // Create a Lightsail client from just a session.
 //     svc := lightsail.New(mySession)
 //
@@ -48,11 +46,11 @@ const (
 //     svc := lightsail.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *Lightsail {
 	c := p.ClientConfig(EndpointsID, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.PartitionID, c.Endpoint, c.SigningRegion, c.SigningName)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, partitionID, endpoint, signingRegion, signingName string) *Lightsail {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *Lightsail {
 	svc := &Lightsail{
 		Client: client.New(
 			cfg,
@@ -61,7 +59,6 @@ func newClient(cfg aws.Config, handlers request.Handlers, partitionID, endpoint,
 				ServiceID:     ServiceID,
 				SigningName:   signingName,
 				SigningRegion: signingRegion,
-				PartitionID:   partitionID,
 				Endpoint:      endpoint,
 				APIVersion:    "2016-11-28",
 				JSONVersion:   "1.1",

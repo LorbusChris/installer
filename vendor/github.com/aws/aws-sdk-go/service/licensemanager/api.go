@@ -57,14 +57,13 @@ func (c *LicenseManager) CreateLicenseConfigurationRequest(input *CreateLicenseC
 
 // CreateLicenseConfiguration API operation for AWS License Manager.
 //
-// Creates a license configuration.
-//
-// A license configuration is an abstraction of a customer license agreement
-// that can be consumed and enforced by License Manager. Components include
-// specifications for the license type (licensing by instance, socket, CPU,
-// or vCPU), allowed tenancy (shared tenancy, Dedicated Instance, Dedicated
-// Host, or all of these), host affinity (how long a VM must be associated with
-// a host), and the number of licenses purchased and used.
+// Creates a new license configuration object. A license configuration is an
+// abstraction of a customer license agreement that can be consumed and enforced
+// by License Manager. Components include specifications for the license type
+// (licensing by instance, socket, CPU, or VCPU), tenancy (shared tenancy, Amazon
+// EC2 Dedicated Instance, Amazon EC2 Dedicated Host, or any of these), host
+// affinity (how long a VM must be associated with a host), the number of licenses
+// purchased and used.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -160,9 +159,8 @@ func (c *LicenseManager) DeleteLicenseConfigurationRequest(input *DeleteLicenseC
 
 // DeleteLicenseConfiguration API operation for AWS License Manager.
 //
-// Deletes the specified license configuration.
-//
-// You cannot delete a license configuration that is in use.
+// Deletes an existing license configuration. This action fails if the configuration
+// is in use.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -254,7 +252,7 @@ func (c *LicenseManager) GetLicenseConfigurationRequest(input *GetLicenseConfigu
 
 // GetLicenseConfiguration API operation for AWS License Manager.
 //
-// Gets detailed information about the specified license configuration.
+// Returns a detailed description of a license configuration.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -346,7 +344,8 @@ func (c *LicenseManager) GetServiceSettingsRequest(input *GetServiceSettingsInpu
 
 // GetServiceSettings API operation for AWS License Manager.
 //
-// Gets the License Manager settings for the current Region.
+// Gets License Manager settings for a region. Exposes the configured S3 bucket,
+// SNS topic, etc., for inspection.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -435,11 +434,11 @@ func (c *LicenseManager) ListAssociationsForLicenseConfigurationRequest(input *L
 
 // ListAssociationsForLicenseConfiguration API operation for AWS License Manager.
 //
-// Lists the resource associations for the specified license configuration.
-//
-// Resource associations need not consume licenses from a license configuration.
-// For example, an AMI or a stopped instance might not consume a license (depending
-// on the license rules).
+// Lists the resource associations for a license configuration. Resource associations
+// need not consume licenses from a license configuration. For example, an AMI
+// or a stopped instance may not consume a license (depending on the license
+// rules). Use this operation to find all resources associated with a license
+// configuration.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -490,98 +489,6 @@ func (c *LicenseManager) ListAssociationsForLicenseConfigurationWithContext(ctx 
 	return out, req.Send()
 }
 
-const opListFailuresForLicenseConfigurationOperations = "ListFailuresForLicenseConfigurationOperations"
-
-// ListFailuresForLicenseConfigurationOperationsRequest generates a "aws/request.Request" representing the
-// client's request for the ListFailuresForLicenseConfigurationOperations operation. The "output" return
-// value will be populated with the request's response once the request completes
-// successfully.
-//
-// Use "Send" method on the returned Request to send the API call to the service.
-// the "output" return value is not valid until after Send returns without error.
-//
-// See ListFailuresForLicenseConfigurationOperations for more information on using the ListFailuresForLicenseConfigurationOperations
-// API call, and error handling.
-//
-// This method is useful when you want to inject custom logic or configuration
-// into the SDK's request lifecycle. Such as custom headers, or retry logic.
-//
-//
-//    // Example sending a request using the ListFailuresForLicenseConfigurationOperationsRequest method.
-//    req, resp := client.ListFailuresForLicenseConfigurationOperationsRequest(params)
-//
-//    err := req.Send()
-//    if err == nil { // resp is now filled
-//        fmt.Println(resp)
-//    }
-//
-// See also, https://docs.aws.amazon.com/goto/WebAPI/license-manager-2018-08-01/ListFailuresForLicenseConfigurationOperations
-func (c *LicenseManager) ListFailuresForLicenseConfigurationOperationsRequest(input *ListFailuresForLicenseConfigurationOperationsInput) (req *request.Request, output *ListFailuresForLicenseConfigurationOperationsOutput) {
-	op := &request.Operation{
-		Name:       opListFailuresForLicenseConfigurationOperations,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-	}
-
-	if input == nil {
-		input = &ListFailuresForLicenseConfigurationOperationsInput{}
-	}
-
-	output = &ListFailuresForLicenseConfigurationOperationsOutput{}
-	req = c.newRequest(op, input, output)
-	return
-}
-
-// ListFailuresForLicenseConfigurationOperations API operation for AWS License Manager.
-//
-// Lists the license configuration operations that failed.
-//
-// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
-// with awserr.Error's Code and Message methods to get detailed information about
-// the error.
-//
-// See the AWS API reference guide for AWS License Manager's
-// API operation ListFailuresForLicenseConfigurationOperations for usage and error information.
-//
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
-//   One or more parameter values are not valid.
-//
-//   * ErrCodeServerInternalException "ServerInternalException"
-//   The server experienced an internal error. Try again.
-//
-//   * ErrCodeAuthorizationException "AuthorizationException"
-//   The AWS user account does not have permission to perform the action. Check
-//   the IAM policy associated with this account.
-//
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
-//   Access to resource denied.
-//
-//   * ErrCodeRateLimitExceededException "RateLimitExceededException"
-//   Too many requests have been submitted. Try again after a brief wait.
-//
-// See also, https://docs.aws.amazon.com/goto/WebAPI/license-manager-2018-08-01/ListFailuresForLicenseConfigurationOperations
-func (c *LicenseManager) ListFailuresForLicenseConfigurationOperations(input *ListFailuresForLicenseConfigurationOperationsInput) (*ListFailuresForLicenseConfigurationOperationsOutput, error) {
-	req, out := c.ListFailuresForLicenseConfigurationOperationsRequest(input)
-	return out, req.Send()
-}
-
-// ListFailuresForLicenseConfigurationOperationsWithContext is the same as ListFailuresForLicenseConfigurationOperations with the addition of
-// the ability to pass a context and additional request options.
-//
-// See ListFailuresForLicenseConfigurationOperations for details on how to use this API operation.
-//
-// The context must be non-nil and will be used for request cancellation. If
-// the context is nil a panic will occur. In the future the SDK may create
-// sub-contexts for http.Requests. See https://golang.org/pkg/context/
-// for more information on using Contexts.
-func (c *LicenseManager) ListFailuresForLicenseConfigurationOperationsWithContext(ctx aws.Context, input *ListFailuresForLicenseConfigurationOperationsInput, opts ...request.Option) (*ListFailuresForLicenseConfigurationOperationsOutput, error) {
-	req, out := c.ListFailuresForLicenseConfigurationOperationsRequest(input)
-	req.SetContext(ctx)
-	req.ApplyOptions(opts...)
-	return out, req.Send()
-}
-
 const opListLicenseConfigurations = "ListLicenseConfigurations"
 
 // ListLicenseConfigurationsRequest generates a "aws/request.Request" representing the
@@ -626,7 +533,9 @@ func (c *LicenseManager) ListLicenseConfigurationsRequest(input *ListLicenseConf
 
 // ListLicenseConfigurations API operation for AWS License Manager.
 //
-// Lists the license configurations for your account.
+// Lists license configuration objects for an account, each containing the name,
+// description, license type, and other license terms modeled from a license
+// agreement.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -721,7 +630,7 @@ func (c *LicenseManager) ListLicenseSpecificationsForResourceRequest(input *List
 
 // ListLicenseSpecificationsForResource API operation for AWS License Manager.
 //
-// Describes the license configurations for the specified resource.
+// Returns the license configuration for a resource.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -813,7 +722,7 @@ func (c *LicenseManager) ListResourceInventoryRequest(input *ListResourceInvento
 
 // ListResourceInventory API operation for AWS License Manager.
 //
-// Lists resources managed using Systems Manager inventory.
+// Returns a detailed list of resources.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -911,7 +820,7 @@ func (c *LicenseManager) ListTagsForResourceRequest(input *ListTagsForResourceIn
 
 // ListTagsForResource API operation for AWS License Manager.
 //
-// Lists the tags for the specified license configuration.
+// Lists tags attached to a resource.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1101,7 +1010,7 @@ func (c *LicenseManager) TagResourceRequest(input *TagResourceInput) (req *reque
 
 // TagResource API operation for AWS License Manager.
 //
-// Adds the specified tags to the specified license configuration.
+// Attach one of more tags to any resource.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1194,7 +1103,7 @@ func (c *LicenseManager) UntagResourceRequest(input *UntagResourceInput) (req *r
 
 // UntagResource API operation for AWS License Manager.
 //
-// Removes the specified tags from the specified license configuration.
+// Remove tags from a resource.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1287,14 +1196,12 @@ func (c *LicenseManager) UpdateLicenseConfigurationRequest(input *UpdateLicenseC
 
 // UpdateLicenseConfiguration API operation for AWS License Manager.
 //
-// Modifies the attributes of an existing license configuration.
-//
-// A license configuration is an abstraction of a customer license agreement
-// that can be consumed and enforced by License Manager. Components include
-// specifications for the license type (licensing by instance, socket, CPU,
-// or vCPU), allowed tenancy (shared tenancy, Dedicated Instance, Dedicated
-// Host, or all of these), host affinity (how long a VM must be associated with
-// a host), and the number of licenses purchased and used.
+// Modifies the attributes of an existing license configuration object. A license
+// configuration is an abstraction of a customer license agreement that can
+// be consumed and enforced by License Manager. Components include specifications
+// for the license type (Instances, cores, sockets, VCPUs), tenancy (shared
+// or Dedicated Host), host affinity (how long a VM is associated with a host),
+// the number of licenses purchased and used.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1387,13 +1294,11 @@ func (c *LicenseManager) UpdateLicenseSpecificationsForResourceRequest(input *Up
 
 // UpdateLicenseSpecificationsForResource API operation for AWS License Manager.
 //
-// Adds or removes the specified license configurations for the specified AWS
-// resource.
-//
-// You can update the license specifications of AMIs, instances, and hosts.
-// You cannot update the license specifications for launch templates and AWS
-// CloudFormation templates, as they send license configurations to the operation
-// that creates the resource.
+// Adds or removes license configurations for a specified AWS resource. This
+// operation currently supports updating the license specifications of AMIs,
+// instances, and hosts. Launch templates and AWS CloudFormation templates are
+// not managed from this operation as those resources send the license configurations
+// directly to a resource creation operation, such as RunInstances.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1495,7 +1400,7 @@ func (c *LicenseManager) UpdateServiceSettingsRequest(input *UpdateServiceSettin
 
 // UpdateServiceSettings API operation for AWS License Manager.
 //
-// Updates License Manager settings for the current Region.
+// Updates License Manager service settings.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1543,38 +1448,14 @@ func (c *LicenseManager) UpdateServiceSettingsWithContext(ctx aws.Context, input
 	return out, req.Send()
 }
 
-// Describes automated discovery.
-type AutomatedDiscoveryInformation struct {
-	_ struct{} `type:"structure"`
-
-	// Time that automated discovery last ran.
-	LastRunTime *time.Time `type:"timestamp"`
-}
-
-// String returns the string representation
-func (s AutomatedDiscoveryInformation) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s AutomatedDiscoveryInformation) GoString() string {
-	return s.String()
-}
-
-// SetLastRunTime sets the LastRunTime field's value.
-func (s *AutomatedDiscoveryInformation) SetLastRunTime(v time.Time) *AutomatedDiscoveryInformation {
-	s.LastRunTime = &v
-	return s
-}
-
 // Details about license consumption.
 type ConsumedLicenseSummary struct {
 	_ struct{} `type:"structure"`
 
-	// Number of licenses consumed by the resource.
+	// Number of licenses consumed by a resource.
 	ConsumedLicenses *int64 `type:"long"`
 
-	// Resource type of the resource consuming a license.
+	// Resource type of the resource consuming a license (instance, host, or AMI).
 	ResourceType *string `type:"string" enum:"ResourceType"`
 }
 
@@ -1603,33 +1484,22 @@ func (s *ConsumedLicenseSummary) SetResourceType(v string) *ConsumedLicenseSumma
 type CreateLicenseConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
-	// Description of the license configuration.
+	// Human-friendly description of the license configuration.
 	Description *string `type:"string"`
 
 	// Number of licenses managed by the license configuration.
 	LicenseCount *int64 `type:"long"`
 
-	// Indicates whether hard or soft license enforcement is used. Exceeding a hard
-	// limit blocks the launch of new instances.
+	// Flag indicating whether hard or soft license enforcement is used. Exceeding
+	// a hard limit results in the blocked deployment of new instances.
 	LicenseCountHardLimit *bool `type:"boolean"`
 
-	// Dimension used to track the license inventory.
+	// Dimension to use to track the license inventory.
 	//
 	// LicenseCountingType is a required field
 	LicenseCountingType *string `type:"string" required:"true" enum:"LicenseCountingType"`
 
-	// License rules. The syntax is #name=value (for example, #allowedTenancy=EC2-DedicatedHost).
-	// Available rules vary by dimension.
-	//
-	//    * Cores dimension: allowedTenancy | maximumCores | minimumCores
-	//
-	//    * Instances dimension: allowedTenancy | maximumCores | minimumCores |
-	//    maximumSockets | minimumSockets | maximumVcpus | minimumVcpus
-	//
-	//    * Sockets dimension: allowedTenancy | maximumSockets | minimumSockets
-	//
-	//    * vCPUs dimension: allowedTenancy | honorVcpuOptimization | maximumVcpus
-	//    | minimumVcpus
+	// Array of configured License Manager rules.
 	LicenseRules []*string `type:"list"`
 
 	// Name of the license configuration.
@@ -1637,10 +1507,10 @@ type CreateLicenseConfigurationInput struct {
 	// Name is a required field
 	Name *string `type:"string" required:"true"`
 
-	// Product information.
-	ProductInformationList []*ProductInformation `type:"list"`
-
-	// Tags to add to the license configuration.
+	// The tags to apply to the resources during launch. You can only tag instances
+	// and volumes on launch. The specified tags are applied to all instances or
+	// volumes that are created during launch. To tag a resource after it has been
+	// created, see CreateTags .
 	Tags []*Tag `type:"list"`
 }
 
@@ -1662,16 +1532,6 @@ func (s *CreateLicenseConfigurationInput) Validate() error {
 	}
 	if s.Name == nil {
 		invalidParams.Add(request.NewErrParamRequired("Name"))
-	}
-	if s.ProductInformationList != nil {
-		for i, v := range s.ProductInformationList {
-			if v == nil {
-				continue
-			}
-			if err := v.Validate(); err != nil {
-				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ProductInformationList", i), err.(request.ErrInvalidParams))
-			}
-		}
 	}
 
 	if invalidParams.Len() > 0 {
@@ -1716,12 +1576,6 @@ func (s *CreateLicenseConfigurationInput) SetName(v string) *CreateLicenseConfig
 	return s
 }
 
-// SetProductInformationList sets the ProductInformationList field's value.
-func (s *CreateLicenseConfigurationInput) SetProductInformationList(v []*ProductInformation) *CreateLicenseConfigurationInput {
-	s.ProductInformationList = v
-	return s
-}
-
 // SetTags sets the Tags field's value.
 func (s *CreateLicenseConfigurationInput) SetTags(v []*Tag) *CreateLicenseConfigurationInput {
 	s.Tags = v
@@ -1731,7 +1585,7 @@ func (s *CreateLicenseConfigurationInput) SetTags(v []*Tag) *CreateLicenseConfig
 type CreateLicenseConfigurationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// ARN of the license configuration object after its creation.
 	LicenseConfigurationArn *string `type:"string"`
 }
 
@@ -1754,7 +1608,7 @@ func (s *CreateLicenseConfigurationOutput) SetLicenseConfigurationArn(v string) 
 type DeleteLicenseConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
-	// ID of the license configuration.
+	// Unique ID of the configuration object to delete.
 	//
 	// LicenseConfigurationArn is a required field
 	LicenseConfigurationArn *string `type:"string" required:"true"`
@@ -1803,16 +1657,18 @@ func (s DeleteLicenseConfigurationOutput) GoString() string {
 	return s.String()
 }
 
-// A filter name and value pair that is used to return more specific results
-// from a describe operation. Filters can be used to match a set of resources
-// by specific criteria, such as tags, attributes, or IDs.
+// A filter name and value pair that is used to return a more specific list
+// of results from a describe operation. Filters can be used to match a set
+// of resources by specific criteria, such as tags, attributes, or IDs. The
+// filters supported by a Describe operation are documented with the Describe
+// operation.
 type Filter struct {
 	_ struct{} `type:"structure"`
 
 	// Name of the filter. Filter names are case-sensitive.
 	Name *string `type:"string"`
 
-	// Filter values. Filter values are case-sensitive.
+	// One or more filter values. Filter values are case-sensitive.
 	Values []*string `type:"list"`
 }
 
@@ -1841,7 +1697,7 @@ func (s *Filter) SetValues(v []*string) *Filter {
 type GetLicenseConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// ARN of the license configuration being requested.
 	//
 	// LicenseConfigurationArn is a required field
 	LicenseConfigurationArn *string `type:"string" required:"true"`
@@ -1879,10 +1735,7 @@ func (s *GetLicenseConfigurationInput) SetLicenseConfigurationArn(v string) *Get
 type GetLicenseConfigurationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Automated discovery information.
-	AutomatedDiscoveryInformation *AutomatedDiscoveryInformation `type:"structure"`
-
-	// Summaries of the licenses consumed by resources.
+	// List of summaries for consumed licenses used by various resources.
 	ConsumedLicenseSummaryList []*ConsumedLicenseSummary `type:"list"`
 
 	// Number of licenses assigned to resources.
@@ -1891,7 +1744,7 @@ type GetLicenseConfigurationOutput struct {
 	// Description of the license configuration.
 	Description *string `type:"string"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// ARN of the license configuration requested.
 	LicenseConfigurationArn *string `type:"string"`
 
 	// Unique ID for the license configuration.
@@ -1903,28 +1756,26 @@ type GetLicenseConfigurationOutput struct {
 	// Sets the number of available licenses as a hard limit.
 	LicenseCountHardLimit *bool `type:"boolean"`
 
-	// Dimension on which the licenses are counted.
+	// Dimension on which the licenses are counted (for example, instances, cores,
+	// sockets, or VCPUs).
 	LicenseCountingType *string `type:"string" enum:"LicenseCountingType"`
 
-	// License rules.
+	// List of flexible text strings designating license rules.
 	LicenseRules []*string `type:"list"`
 
-	// Summaries of the managed resources.
+	// List of summaries of managed resources.
 	ManagedResourceSummaryList []*ManagedResourceSummary `type:"list"`
 
 	// Name of the license configuration.
 	Name *string `type:"string"`
 
-	// Account ID of the owner of the license configuration.
+	// Owner account ID for the license configuration.
 	OwnerAccountId *string `type:"string"`
 
-	// Product information.
-	ProductInformationList []*ProductInformation `type:"list"`
-
-	// License configuration status.
+	// License configuration status (active, etc.).
 	Status *string `type:"string"`
 
-	// Tags for the license configuration.
+	// List of tags attached to the license configuration.
 	Tags []*Tag `type:"list"`
 }
 
@@ -1936,12 +1787,6 @@ func (s GetLicenseConfigurationOutput) String() string {
 // GoString returns the string representation
 func (s GetLicenseConfigurationOutput) GoString() string {
 	return s.String()
-}
-
-// SetAutomatedDiscoveryInformation sets the AutomatedDiscoveryInformation field's value.
-func (s *GetLicenseConfigurationOutput) SetAutomatedDiscoveryInformation(v *AutomatedDiscoveryInformation) *GetLicenseConfigurationOutput {
-	s.AutomatedDiscoveryInformation = v
-	return s
 }
 
 // SetConsumedLicenseSummaryList sets the ConsumedLicenseSummaryList field's value.
@@ -2016,12 +1861,6 @@ func (s *GetLicenseConfigurationOutput) SetOwnerAccountId(v string) *GetLicenseC
 	return s
 }
 
-// SetProductInformationList sets the ProductInformationList field's value.
-func (s *GetLicenseConfigurationOutput) SetProductInformationList(v []*ProductInformation) *GetLicenseConfigurationOutput {
-	s.ProductInformationList = v
-	return s
-}
-
 // SetStatus sets the Status field's value.
 func (s *GetLicenseConfigurationOutput) SetStatus(v string) *GetLicenseConfigurationOutput {
 	s.Status = &v
@@ -2054,16 +1893,12 @@ type GetServiceSettingsOutput struct {
 	// Indicates whether cross-account discovery has been enabled.
 	EnableCrossAccountsDiscovery *bool `type:"boolean"`
 
-	// Amazon Resource Name (ARN) of the AWS resource share. The License Manager
-	// master account will provide member accounts with access to this share.
-	LicenseManagerResourceShareArn *string `type:"string"`
-
 	// Indicates whether AWS Organizations has been integrated with License Manager
 	// for cross-account discovery.
 	OrganizationConfiguration *OrganizationConfiguration `type:"structure"`
 
 	// Regional S3 bucket path for storing reports, license trail event data, discovery
-	// data, and so on.
+	// data, etc.
 	S3BucketArn *string `type:"string"`
 
 	// SNS topic configured to receive notifications from License Manager.
@@ -2086,12 +1921,6 @@ func (s *GetServiceSettingsOutput) SetEnableCrossAccountsDiscovery(v bool) *GetS
 	return s
 }
 
-// SetLicenseManagerResourceShareArn sets the LicenseManagerResourceShareArn field's value.
-func (s *GetServiceSettingsOutput) SetLicenseManagerResourceShareArn(v string) *GetServiceSettingsOutput {
-	s.LicenseManagerResourceShareArn = &v
-	return s
-}
-
 // SetOrganizationConfiguration sets the OrganizationConfiguration field's value.
 func (s *GetServiceSettingsOutput) SetOrganizationConfiguration(v *OrganizationConfiguration) *GetServiceSettingsOutput {
 	s.OrganizationConfiguration = v
@@ -2110,16 +1939,16 @@ func (s *GetServiceSettingsOutput) SetSnsTopicArn(v string) *GetServiceSettingsO
 	return s
 }
 
-// An inventory filter.
+// An inventory filter object.
 type InventoryFilter struct {
 	_ struct{} `type:"structure"`
 
-	// Condition of the filter.
+	// The condition of the filter.
 	//
 	// Condition is a required field
 	Condition *string `type:"string" required:"true" enum:"InventoryFilterCondition"`
 
-	// Name of the filter.
+	// The name of the filter.
 	//
 	// Name is a required field
 	Name *string `type:"string" required:"true"`
@@ -2175,16 +2004,13 @@ func (s *InventoryFilter) SetValue(v string) *InventoryFilter {
 // A license configuration is an abstraction of a customer license agreement
 // that can be consumed and enforced by License Manager. Components include
 // specifications for the license type (licensing by instance, socket, CPU,
-// or vCPU), allowed tenancy (shared tenancy, Dedicated Instance, Dedicated
-// Host, or all of these), host affinity (how long a VM must be associated with
-// a host), and the number of licenses purchased and used.
+// or VCPU), tenancy (shared tenancy, Amazon EC2 Dedicated Instance, Amazon
+// EC2 Dedicated Host, or any of these), host affinity (how long a VM must be
+// associated with a host), the number of licenses purchased and used.
 type LicenseConfiguration struct {
 	_ struct{} `type:"structure"`
 
-	// Automated discovery information.
-	AutomatedDiscoveryInformation *AutomatedDiscoveryInformation `type:"structure"`
-
-	// Summaries for licenses consumed by various resources.
+	// List of summaries for licenses consumed by various resources.
 	ConsumedLicenseSummaryList []*ConsumedLicenseSummary `type:"list"`
 
 	// Number of licenses consumed.
@@ -2193,25 +2019,25 @@ type LicenseConfiguration struct {
 	// Description of the license configuration.
 	Description *string `type:"string"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// ARN of the LicenseConfiguration object.
 	LicenseConfigurationArn *string `type:"string"`
 
-	// Unique ID of the license configuration.
+	// Unique ID of the LicenseConfiguration object.
 	LicenseConfigurationId *string `type:"string"`
 
 	// Number of licenses managed by the license configuration.
 	LicenseCount *int64 `type:"long"`
 
-	// Number of available licenses as a hard limit.
+	// Sets the number of available licenses as a hard limit.
 	LicenseCountHardLimit *bool `type:"boolean"`
 
-	// Dimension to use to track the license inventory.
+	// Dimension to use to track license inventory.
 	LicenseCountingType *string `type:"string" enum:"LicenseCountingType"`
 
-	// License rules.
+	// Array of configured License Manager rules.
 	LicenseRules []*string `type:"list"`
 
-	// Summaries for managed resources.
+	// List of summaries for managed resources.
 	ManagedResourceSummaryList []*ManagedResourceSummary `type:"list"`
 
 	// Name of the license configuration.
@@ -2219,9 +2045,6 @@ type LicenseConfiguration struct {
 
 	// Account ID of the license configuration's owner.
 	OwnerAccountId *string `type:"string"`
-
-	// Product information.
-	ProductInformationList []*ProductInformation `type:"list"`
 
 	// Status of the license configuration.
 	Status *string `type:"string"`
@@ -2235,12 +2058,6 @@ func (s LicenseConfiguration) String() string {
 // GoString returns the string representation
 func (s LicenseConfiguration) GoString() string {
 	return s.String()
-}
-
-// SetAutomatedDiscoveryInformation sets the AutomatedDiscoveryInformation field's value.
-func (s *LicenseConfiguration) SetAutomatedDiscoveryInformation(v *AutomatedDiscoveryInformation) *LicenseConfiguration {
-	s.AutomatedDiscoveryInformation = v
-	return s
 }
 
 // SetConsumedLicenseSummaryList sets the ConsumedLicenseSummaryList field's value.
@@ -2315,26 +2132,20 @@ func (s *LicenseConfiguration) SetOwnerAccountId(v string) *LicenseConfiguration
 	return s
 }
 
-// SetProductInformationList sets the ProductInformationList field's value.
-func (s *LicenseConfiguration) SetProductInformationList(v []*ProductInformation) *LicenseConfiguration {
-	s.ProductInformationList = v
-	return s
-}
-
 // SetStatus sets the Status field's value.
 func (s *LicenseConfiguration) SetStatus(v string) *LicenseConfiguration {
 	s.Status = &v
 	return s
 }
 
-// Describes an association with a license configuration.
+// Describes a server resource that is associated with a license configuration.
 type LicenseConfigurationAssociation struct {
 	_ struct{} `type:"structure"`
 
 	// Time when the license configuration was associated with the resource.
 	AssociationTime *time.Time `type:"timestamp"`
 
-	// Amazon Resource Name (ARN) of the resource.
+	// ARN of the resource associated with the license configuration.
 	ResourceArn *string `type:"string"`
 
 	// ID of the AWS account that owns the resource consuming licenses.
@@ -2378,26 +2189,27 @@ func (s *LicenseConfigurationAssociation) SetResourceType(v string) *LicenseConf
 	return s
 }
 
-// Details about the usage of a resource associated with a license configuration.
+// Contains details of the usage of each resource from the license pool.
 type LicenseConfigurationUsage struct {
 	_ struct{} `type:"structure"`
 
-	// Time when the license configuration was initially associated with the resource.
+	// Time when the license configuration was initially associated with a resource.
 	AssociationTime *time.Time `type:"timestamp"`
 
-	// Number of licenses consumed by the resource.
+	// Number of licenses consumed out of the total provisioned in the license configuration.
 	ConsumedLicenses *int64 `type:"long"`
 
-	// Amazon Resource Name (ARN) of the resource.
+	// ARN of the resource associated with a license configuration.
 	ResourceArn *string `type:"string"`
 
-	// ID of the account that owns the resource.
+	// ID of the account that owns a resource that is associated with the license
+	// configuration.
 	ResourceOwnerId *string `type:"string"`
 
-	// Status of the resource.
+	// Status of a resource associated with the license configuration.
 	ResourceStatus *string `type:"string"`
 
-	// Type of resource.
+	// Type of resource associated with athe license configuration.
 	ResourceType *string `type:"string" enum:"ResourceType"`
 }
 
@@ -2447,98 +2259,11 @@ func (s *LicenseConfigurationUsage) SetResourceType(v string) *LicenseConfigurat
 	return s
 }
 
-// Describes the failure of a license operation.
-type LicenseOperationFailure struct {
-	_ struct{} `type:"structure"`
-
-	// Error message.
-	ErrorMessage *string `type:"string"`
-
-	// Failure time.
-	FailureTime *time.Time `type:"timestamp"`
-
-	// Reserved.
-	MetadataList []*Metadata `type:"list"`
-
-	// Name of the operation.
-	OperationName *string `type:"string"`
-
-	// The requester is "License Manager Automated Discovery".
-	OperationRequestedBy *string `type:"string"`
-
-	// Amazon Resource Name (ARN) of the resource.
-	ResourceArn *string `type:"string"`
-
-	// ID of the AWS account that owns the resource.
-	ResourceOwnerId *string `type:"string"`
-
-	// Resource type.
-	ResourceType *string `type:"string" enum:"ResourceType"`
-}
-
-// String returns the string representation
-func (s LicenseOperationFailure) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s LicenseOperationFailure) GoString() string {
-	return s.String()
-}
-
-// SetErrorMessage sets the ErrorMessage field's value.
-func (s *LicenseOperationFailure) SetErrorMessage(v string) *LicenseOperationFailure {
-	s.ErrorMessage = &v
-	return s
-}
-
-// SetFailureTime sets the FailureTime field's value.
-func (s *LicenseOperationFailure) SetFailureTime(v time.Time) *LicenseOperationFailure {
-	s.FailureTime = &v
-	return s
-}
-
-// SetMetadataList sets the MetadataList field's value.
-func (s *LicenseOperationFailure) SetMetadataList(v []*Metadata) *LicenseOperationFailure {
-	s.MetadataList = v
-	return s
-}
-
-// SetOperationName sets the OperationName field's value.
-func (s *LicenseOperationFailure) SetOperationName(v string) *LicenseOperationFailure {
-	s.OperationName = &v
-	return s
-}
-
-// SetOperationRequestedBy sets the OperationRequestedBy field's value.
-func (s *LicenseOperationFailure) SetOperationRequestedBy(v string) *LicenseOperationFailure {
-	s.OperationRequestedBy = &v
-	return s
-}
-
-// SetResourceArn sets the ResourceArn field's value.
-func (s *LicenseOperationFailure) SetResourceArn(v string) *LicenseOperationFailure {
-	s.ResourceArn = &v
-	return s
-}
-
-// SetResourceOwnerId sets the ResourceOwnerId field's value.
-func (s *LicenseOperationFailure) SetResourceOwnerId(v string) *LicenseOperationFailure {
-	s.ResourceOwnerId = &v
-	return s
-}
-
-// SetResourceType sets the ResourceType field's value.
-func (s *LicenseOperationFailure) SetResourceType(v string) *LicenseOperationFailure {
-	s.ResourceType = &v
-	return s
-}
-
-// Details for associating a license configuration with a resource.
+// Object used for associating a license configuration with a resource.
 type LicenseSpecification struct {
 	_ struct{} `type:"structure"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// ARN of the LicenseConfiguration object.
 	//
 	// LicenseConfigurationArn is a required field
 	LicenseConfigurationArn *string `type:"string" required:"true"`
@@ -2576,12 +2301,13 @@ func (s *LicenseSpecification) SetLicenseConfigurationArn(v string) *LicenseSpec
 type ListAssociationsForLicenseConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
-	// Amazon Resource Name (ARN) of a license configuration.
+	// ARN of a LicenseConfiguration object.
 	//
 	// LicenseConfigurationArn is a required field
 	LicenseConfigurationArn *string `type:"string" required:"true"`
 
-	// Maximum number of results to return in a single call.
+	// Maximum number of results to return in a single call. To retrieve the remaining
+	// results, make another call with the returned NextToken value.
 	MaxResults *int64 `type:"integer"`
 
 	// Token for the next set of results.
@@ -2632,7 +2358,9 @@ func (s *ListAssociationsForLicenseConfigurationInput) SetNextToken(v string) *L
 type ListAssociationsForLicenseConfigurationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the associations for the license configuration.
+	// Lists association objects for the license configuration, each containing
+	// the association time, number of consumed licenses, resource ARN, resource
+	// ID, account ID that owns the resource, resource size, and resource type.
 	LicenseConfigurationAssociations []*LicenseConfigurationAssociation `type:"list"`
 
 	// Token for the next set of results.
@@ -2661,114 +2389,17 @@ func (s *ListAssociationsForLicenseConfigurationOutput) SetNextToken(v string) *
 	return s
 }
 
-type ListFailuresForLicenseConfigurationOperationsInput struct {
-	_ struct{} `type:"structure"`
-
-	// Amazon Resource Name of the license configuration.
-	//
-	// LicenseConfigurationArn is a required field
-	LicenseConfigurationArn *string `type:"string" required:"true"`
-
-	// Maximum number of results to return in a single call.
-	MaxResults *int64 `type:"integer"`
-
-	// Token for the next set of results.
-	NextToken *string `type:"string"`
-}
-
-// String returns the string representation
-func (s ListFailuresForLicenseConfigurationOperationsInput) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s ListFailuresForLicenseConfigurationOperationsInput) GoString() string {
-	return s.String()
-}
-
-// Validate inspects the fields of the type to determine if they are valid.
-func (s *ListFailuresForLicenseConfigurationOperationsInput) Validate() error {
-	invalidParams := request.ErrInvalidParams{Context: "ListFailuresForLicenseConfigurationOperationsInput"}
-	if s.LicenseConfigurationArn == nil {
-		invalidParams.Add(request.NewErrParamRequired("LicenseConfigurationArn"))
-	}
-
-	if invalidParams.Len() > 0 {
-		return invalidParams
-	}
-	return nil
-}
-
-// SetLicenseConfigurationArn sets the LicenseConfigurationArn field's value.
-func (s *ListFailuresForLicenseConfigurationOperationsInput) SetLicenseConfigurationArn(v string) *ListFailuresForLicenseConfigurationOperationsInput {
-	s.LicenseConfigurationArn = &v
-	return s
-}
-
-// SetMaxResults sets the MaxResults field's value.
-func (s *ListFailuresForLicenseConfigurationOperationsInput) SetMaxResults(v int64) *ListFailuresForLicenseConfigurationOperationsInput {
-	s.MaxResults = &v
-	return s
-}
-
-// SetNextToken sets the NextToken field's value.
-func (s *ListFailuresForLicenseConfigurationOperationsInput) SetNextToken(v string) *ListFailuresForLicenseConfigurationOperationsInput {
-	s.NextToken = &v
-	return s
-}
-
-type ListFailuresForLicenseConfigurationOperationsOutput struct {
-	_ struct{} `type:"structure"`
-
-	// License configuration operations that failed.
-	LicenseOperationFailureList []*LicenseOperationFailure `type:"list"`
-
-	// Token for the next set of results.
-	NextToken *string `type:"string"`
-}
-
-// String returns the string representation
-func (s ListFailuresForLicenseConfigurationOperationsOutput) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s ListFailuresForLicenseConfigurationOperationsOutput) GoString() string {
-	return s.String()
-}
-
-// SetLicenseOperationFailureList sets the LicenseOperationFailureList field's value.
-func (s *ListFailuresForLicenseConfigurationOperationsOutput) SetLicenseOperationFailureList(v []*LicenseOperationFailure) *ListFailuresForLicenseConfigurationOperationsOutput {
-	s.LicenseOperationFailureList = v
-	return s
-}
-
-// SetNextToken sets the NextToken field's value.
-func (s *ListFailuresForLicenseConfigurationOperationsOutput) SetNextToken(v string) *ListFailuresForLicenseConfigurationOperationsOutput {
-	s.NextToken = &v
-	return s
-}
-
 type ListLicenseConfigurationsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Filters to scope the results. The following filters and logical operators
-	// are supported:
-	//
-	//    * licenseCountingType - The dimension on which licenses are counted (vCPU).
-	//    Logical operators are EQUALS | NOT_EQUALS.
-	//
-	//    * enforceLicenseCount - A Boolean value that indicates whether hard license
-	//    enforcement is used. Logical operators are EQUALS | NOT_EQUALS.
-	//
-	//    * usagelimitExceeded - A Boolean value that indicates whether the available
-	//    licenses have been exceeded. Logical operators are EQUALS | NOT_EQUALS.
+	// One or more filters.
 	Filters []*Filter `type:"list"`
 
-	// Amazon Resource Names (ARN) of the license configurations.
+	// An array of ARNs for the calling account’s license configurations.
 	LicenseConfigurationArns []*string `type:"list"`
 
-	// Maximum number of results to return in a single call.
+	// Maximum number of results to return in a single call. To retrieve the remaining
+	// results, make another call with the returned NextToken value.
 	MaxResults *int64 `type:"integer"`
 
 	// Token for the next set of results.
@@ -2812,7 +2443,7 @@ func (s *ListLicenseConfigurationsInput) SetNextToken(v string) *ListLicenseConf
 type ListLicenseConfigurationsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the license configurations.
+	// Array of license configuration objects.
 	LicenseConfigurations []*LicenseConfiguration `type:"list"`
 
 	// Token for the next set of results.
@@ -2844,13 +2475,14 @@ func (s *ListLicenseConfigurationsOutput) SetNextToken(v string) *ListLicenseCon
 type ListLicenseSpecificationsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// Maximum number of results to return in a single call.
+	// Maximum number of results to return in a single call. To retrieve the remaining
+	// results, make another call with the returned NextToken value.
 	MaxResults *int64 `type:"integer"`
 
 	// Token for the next set of results.
 	NextToken *string `type:"string"`
 
-	// Amazon Resource Name (ARN) of a resource that has an associated license configuration.
+	// ARN of an AMI or Amazon EC2 instance that has an associated license configuration.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
@@ -2932,27 +2564,11 @@ func (s *ListLicenseSpecificationsForResourceOutput) SetNextToken(v string) *Lis
 type ListResourceInventoryInput struct {
 	_ struct{} `type:"structure"`
 
-	// Filters to scope the results. The following filters and logical operators
-	// are supported:
-	//
-	//    * account_id - The ID of the AWS account that owns the resource. Logical
-	//    operators are EQUALS | NOT_EQUALS.
-	//
-	//    * application_name - The name of the application. Logical operators are
-	//    EQUALS | BEGINS_WITH.
-	//
-	//    * license_included - The type of license included. Logical operators are
-	//    EQUALS | NOT_EQUALS. Possible values are sql-server-enterprise | sql-server-standard
-	//    | sql-server-web | windows-server-datacenter.
-	//
-	//    * platform - The platform of the resource. Logical operators are EQUALS
-	//    | BEGINS_WITH.
-	//
-	//    * resource_id - The ID of the resource. Logical operators are EQUALS |
-	//    NOT_EQUALS.
+	// One or more filters.
 	Filters []*InventoryFilter `type:"list"`
 
-	// Maximum number of results to return in a single call.
+	// Maximum number of results to return in a single call. To retrieve the remaining
+	// results, make another call with the returned NextToken value.
 	MaxResults *int64 `type:"integer"`
 
 	// Token for the next set of results.
@@ -3013,7 +2629,7 @@ type ListResourceInventoryOutput struct {
 	// Token for the next set of results.
 	NextToken *string `type:"string"`
 
-	// Information about the resources.
+	// The detailed list of resources.
 	ResourceInventoryList []*ResourceInventory `type:"list"`
 }
 
@@ -3042,7 +2658,7 @@ func (s *ListResourceInventoryOutput) SetResourceInventoryList(v []*ResourceInve
 type ListTagsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// ARN for the resource.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
@@ -3080,7 +2696,7 @@ func (s *ListTagsForResourceInput) SetResourceArn(v string) *ListTagsForResource
 type ListTagsForResourceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the tags.
+	// List of tags attached to the resource.
 	Tags []*Tag `type:"list"`
 }
 
@@ -3103,25 +2719,16 @@ func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput
 type ListUsageForLicenseConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
-	// Filters to scope the results. The following filters and logical operators
-	// are supported:
-	//
-	//    * resourceArn - The ARN of the license configuration resource. Logical
-	//    operators are EQUALS | NOT_EQUALS.
-	//
-	//    * resourceType - The resource type (EC2_INSTANCE | EC2_HOST | EC2_AMI
-	//    | SYSTEMS_MANAGER_MANAGED_INSTANCE). Logical operators are EQUALS | NOT_EQUALS.
-	//
-	//    * resourceAccount - The ID of the account that owns the resource. Logical
-	//    operators are EQUALS | NOT_EQUALS.
+	// List of filters to apply.
 	Filters []*Filter `type:"list"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// ARN of the targeted LicenseConfiguration object.
 	//
 	// LicenseConfigurationArn is a required field
 	LicenseConfigurationArn *string `type:"string" required:"true"`
 
-	// Maximum number of results to return in a single call.
+	// Maximum number of results to return in a single call. To retrieve the remaining
+	// results, make another call with the returned NextToken value.
 	MaxResults *int64 `type:"integer"`
 
 	// Token for the next set of results.
@@ -3178,7 +2785,7 @@ func (s *ListUsageForLicenseConfigurationInput) SetNextToken(v string) *ListUsag
 type ListUsageForLicenseConfigurationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the license configurations.
+	// An array of LicenseConfigurationUsage objects.
 	LicenseConfigurationUsageList []*LicenseConfigurationUsage `type:"list"`
 
 	// Token for the next set of results.
@@ -3207,14 +2814,14 @@ func (s *ListUsageForLicenseConfigurationOutput) SetNextToken(v string) *ListUsa
 	return s
 }
 
-// Summary information about a managed resource.
+// Summary for a resource.
 type ManagedResourceSummary struct {
 	_ struct{} `type:"structure"`
 
 	// Number of resources associated with licenses.
 	AssociationCount *int64 `type:"long"`
 
-	// Type of resource associated with a license.
+	// Type of resource associated with a license (instance, host, or AMI).
 	ResourceType *string `type:"string" enum:"ResourceType"`
 }
 
@@ -3240,44 +2847,11 @@ func (s *ManagedResourceSummary) SetResourceType(v string) *ManagedResourceSumma
 	return s
 }
 
-// Reserved.
-type Metadata struct {
-	_ struct{} `type:"structure"`
-
-	// Reserved.
-	Name *string `type:"string"`
-
-	// Reserved.
-	Value *string `type:"string"`
-}
-
-// String returns the string representation
-func (s Metadata) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s Metadata) GoString() string {
-	return s.String()
-}
-
-// SetName sets the Name field's value.
-func (s *Metadata) SetName(v string) *Metadata {
-	s.Name = &v
-	return s
-}
-
-// SetValue sets the Value field's value.
-func (s *Metadata) SetValue(v string) *Metadata {
-	s.Value = &v
-	return s
-}
-
-// Configuration information for AWS Organizations.
+// Object containing configuration information for AWS Organizations.
 type OrganizationConfiguration struct {
 	_ struct{} `type:"structure"`
 
-	// Enables AWS Organization integration.
+	// Flag to activate AWS Organization integration.
 	//
 	// EnableIntegration is a required field
 	EnableIntegration *bool `type:"boolean" required:"true"`
@@ -3312,174 +2886,26 @@ func (s *OrganizationConfiguration) SetEnableIntegration(v bool) *OrganizationCo
 	return s
 }
 
-// Describes product information for a license configuration.
-type ProductInformation struct {
-	_ struct{} `type:"structure"`
-
-	// Product information filters. The following filters and logical operators
-	// are supported:
-	//
-	//    * Application Name - The name of the application. Logical operator is
-	//    EQUALS.
-	//
-	//    * Application Publisher - The publisher of the application. Logical operator
-	//    is EQUALS.
-	//
-	//    * Application Version - The version of the application. Logical operator
-	//    is EQUALS.
-	//
-	//    * Platform Name - The name of the platform. Logical operator is EQUALS.
-	//
-	//    * Platform Type - The platform type. Logical operator is EQUALS.
-	//
-	//    * License Included - The type of license included. Logical operators are
-	//    EQUALS and NOT_EQUALS. Possible values are sql-server-enterprise | sql-server-standard
-	//    | sql-server-web | windows-server-datacenter.
-	//
-	// ProductInformationFilterList is a required field
-	ProductInformationFilterList []*ProductInformationFilter `type:"list" required:"true"`
-
-	// Resource type. The value is SSM_MANAGED.
-	//
-	// ResourceType is a required field
-	ResourceType *string `type:"string" required:"true"`
-}
-
-// String returns the string representation
-func (s ProductInformation) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s ProductInformation) GoString() string {
-	return s.String()
-}
-
-// Validate inspects the fields of the type to determine if they are valid.
-func (s *ProductInformation) Validate() error {
-	invalidParams := request.ErrInvalidParams{Context: "ProductInformation"}
-	if s.ProductInformationFilterList == nil {
-		invalidParams.Add(request.NewErrParamRequired("ProductInformationFilterList"))
-	}
-	if s.ResourceType == nil {
-		invalidParams.Add(request.NewErrParamRequired("ResourceType"))
-	}
-	if s.ProductInformationFilterList != nil {
-		for i, v := range s.ProductInformationFilterList {
-			if v == nil {
-				continue
-			}
-			if err := v.Validate(); err != nil {
-				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ProductInformationFilterList", i), err.(request.ErrInvalidParams))
-			}
-		}
-	}
-
-	if invalidParams.Len() > 0 {
-		return invalidParams
-	}
-	return nil
-}
-
-// SetProductInformationFilterList sets the ProductInformationFilterList field's value.
-func (s *ProductInformation) SetProductInformationFilterList(v []*ProductInformationFilter) *ProductInformation {
-	s.ProductInformationFilterList = v
-	return s
-}
-
-// SetResourceType sets the ResourceType field's value.
-func (s *ProductInformation) SetResourceType(v string) *ProductInformation {
-	s.ResourceType = &v
-	return s
-}
-
-// Describes product information filters.
-type ProductInformationFilter struct {
-	_ struct{} `type:"structure"`
-
-	// Logical operator.
-	//
-	// ProductInformationFilterComparator is a required field
-	ProductInformationFilterComparator *string `type:"string" required:"true"`
-
-	// Filter name.
-	//
-	// ProductInformationFilterName is a required field
-	ProductInformationFilterName *string `type:"string" required:"true"`
-
-	// Filter value.
-	//
-	// ProductInformationFilterValue is a required field
-	ProductInformationFilterValue []*string `type:"list" required:"true"`
-}
-
-// String returns the string representation
-func (s ProductInformationFilter) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s ProductInformationFilter) GoString() string {
-	return s.String()
-}
-
-// Validate inspects the fields of the type to determine if they are valid.
-func (s *ProductInformationFilter) Validate() error {
-	invalidParams := request.ErrInvalidParams{Context: "ProductInformationFilter"}
-	if s.ProductInformationFilterComparator == nil {
-		invalidParams.Add(request.NewErrParamRequired("ProductInformationFilterComparator"))
-	}
-	if s.ProductInformationFilterName == nil {
-		invalidParams.Add(request.NewErrParamRequired("ProductInformationFilterName"))
-	}
-	if s.ProductInformationFilterValue == nil {
-		invalidParams.Add(request.NewErrParamRequired("ProductInformationFilterValue"))
-	}
-
-	if invalidParams.Len() > 0 {
-		return invalidParams
-	}
-	return nil
-}
-
-// SetProductInformationFilterComparator sets the ProductInformationFilterComparator field's value.
-func (s *ProductInformationFilter) SetProductInformationFilterComparator(v string) *ProductInformationFilter {
-	s.ProductInformationFilterComparator = &v
-	return s
-}
-
-// SetProductInformationFilterName sets the ProductInformationFilterName field's value.
-func (s *ProductInformationFilter) SetProductInformationFilterName(v string) *ProductInformationFilter {
-	s.ProductInformationFilterName = &v
-	return s
-}
-
-// SetProductInformationFilterValue sets the ProductInformationFilterValue field's value.
-func (s *ProductInformationFilter) SetProductInformationFilterValue(v []*string) *ProductInformationFilter {
-	s.ProductInformationFilterValue = v
-	return s
-}
-
-// Details about a resource.
+// A set of attributes that describe a resource.
 type ResourceInventory struct {
 	_ struct{} `type:"structure"`
 
-	// Platform of the resource.
+	// The platform of the resource.
 	Platform *string `type:"string"`
 
 	// Platform version of the resource in the inventory.
 	PlatformVersion *string `type:"string"`
 
-	// Amazon Resource Name (ARN) of the resource.
+	// The ARN of the resource.
 	ResourceArn *string `type:"string"`
 
-	// ID of the resource.
+	// Unique ID of the resource.
 	ResourceId *string `type:"string"`
 
-	// ID of the account that owns the resource.
+	// Unique ID of the account that owns the resource.
 	ResourceOwningAccountId *string `type:"string"`
 
-	// Type of resource.
+	// The type of resource.
 	ResourceType *string `type:"string" enum:"ResourceType"`
 }
 
@@ -3529,14 +2955,14 @@ func (s *ResourceInventory) SetResourceType(v string) *ResourceInventory {
 	return s
 }
 
-// Details about a tag for a license configuration.
+// Tag for a resource in a key-value format.
 type Tag struct {
 	_ struct{} `type:"structure"`
 
-	// Tag key.
+	// Key for the resource tag.
 	Key *string `type:"string"`
 
-	// Tag value.
+	// Value for the resource tag.
 	Value *string `type:"string"`
 }
 
@@ -3565,12 +2991,12 @@ func (s *Tag) SetValue(v string) *Tag {
 type TagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// Resource of the ARN to be tagged.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
 
-	// One or more tags.
+	// Names of the tags to attach to the resource.
 	//
 	// Tags is a required field
 	Tags []*Tag `type:"list" required:"true"`
@@ -3631,12 +3057,12 @@ func (s TagResourceOutput) GoString() string {
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// ARN of the resource.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
 
-	// Keys identifying the tags to remove.
+	// List keys identifying tags to remove.
 	//
 	// TagKeys is a required field
 	TagKeys []*string `type:"list" required:"true"`
@@ -3697,31 +3123,28 @@ func (s UntagResourceOutput) GoString() string {
 type UpdateLicenseConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
-	// New description of the license configuration.
+	// New human-friendly description of the license configuration.
 	Description *string `type:"string"`
 
-	// Amazon Resource Name (ARN) of the license configuration.
+	// ARN for a license configuration.
 	//
 	// LicenseConfigurationArn is a required field
 	LicenseConfigurationArn *string `type:"string" required:"true"`
 
-	// New status of the license configuration.
+	// New status of the license configuration (ACTIVE or INACTIVE).
 	LicenseConfigurationStatus *string `type:"string" enum:"LicenseConfigurationStatus"`
 
 	// New number of licenses managed by the license configuration.
 	LicenseCount *int64 `type:"long"`
 
-	// New hard limit of the number of available licenses.
+	// Sets the number of available licenses as a hard limit.
 	LicenseCountHardLimit *bool `type:"boolean"`
 
-	// New license rules.
+	// List of flexible text strings designating license rules.
 	LicenseRules []*string `type:"list"`
 
 	// New name of the license configuration.
 	Name *string `type:"string"`
-
-	// New product information.
-	ProductInformationList []*ProductInformation `type:"list"`
 }
 
 // String returns the string representation
@@ -3739,16 +3162,6 @@ func (s *UpdateLicenseConfigurationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateLicenseConfigurationInput"}
 	if s.LicenseConfigurationArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("LicenseConfigurationArn"))
-	}
-	if s.ProductInformationList != nil {
-		for i, v := range s.ProductInformationList {
-			if v == nil {
-				continue
-			}
-			if err := v.Validate(); err != nil {
-				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ProductInformationList", i), err.(request.ErrInvalidParams))
-			}
-		}
 	}
 
 	if invalidParams.Len() > 0 {
@@ -3799,12 +3212,6 @@ func (s *UpdateLicenseConfigurationInput) SetName(v string) *UpdateLicenseConfig
 	return s
 }
 
-// SetProductInformationList sets the ProductInformationList field's value.
-func (s *UpdateLicenseConfigurationInput) SetProductInformationList(v []*ProductInformation) *UpdateLicenseConfigurationInput {
-	s.ProductInformationList = v
-	return s
-}
-
 type UpdateLicenseConfigurationOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -3822,13 +3229,13 @@ func (s UpdateLicenseConfigurationOutput) GoString() string {
 type UpdateLicenseSpecificationsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// ARNs of the license configurations to add.
+	// License configuration ARNs to be added to a resource.
 	AddLicenseSpecifications []*LicenseSpecification `type:"list"`
 
-	// ARNs of the license configurations to remove.
+	// License configuration ARNs to be removed from a resource.
 	RemoveLicenseSpecifications []*LicenseSpecification `type:"list"`
 
-	// Amazon Resource Name (ARN) of the AWS resource.
+	// ARN for an AWS server resource.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
@@ -3915,15 +3322,13 @@ type UpdateServiceSettingsInput struct {
 	// Activates cross-account discovery.
 	EnableCrossAccountsDiscovery *bool `type:"boolean"`
 
-	// Enables integration with AWS Organizations for cross-account discovery.
+	// Integrates AWS Organizations with License Manager for cross-account discovery.
 	OrganizationConfiguration *OrganizationConfiguration `type:"structure"`
 
-	// Amazon Resource Name (ARN) of the Amazon S3 bucket where the License Manager
-	// information is stored.
+	// ARN of the Amazon S3 bucket where License Manager information is stored.
 	S3BucketArn *string `type:"string"`
 
-	// Amazon Resource Name (ARN) of the Amazon SNS topic used for License Manager
-	// alerts.
+	// ARN of the Amazon SNS topic used for License Manager alerts.
 	SnsTopicArn *string `type:"string"`
 }
 
@@ -4035,10 +3440,4 @@ const (
 
 	// ResourceTypeEc2Ami is a ResourceType enum value
 	ResourceTypeEc2Ami = "EC2_AMI"
-
-	// ResourceTypeRds is a ResourceType enum value
-	ResourceTypeRds = "RDS"
-
-	// ResourceTypeSystemsManagerManagedInstance is a ResourceType enum value
-	ResourceTypeSystemsManagerManagedInstance = "SYSTEMS_MANAGER_MANAGED_INSTANCE"
 )

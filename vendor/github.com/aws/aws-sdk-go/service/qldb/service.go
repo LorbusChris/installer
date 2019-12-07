@@ -39,8 +39,6 @@ const (
 // aws.Config parameter to add your extra config.
 //
 // Example:
-//     mySession := session.Must(session.NewSession())
-//
 //     // Create a QLDB client from just a session.
 //     svc := qldb.New(mySession)
 //
@@ -51,11 +49,11 @@ func New(p client.ConfigProvider, cfgs ...*aws.Config) *QLDB {
 	if c.SigningNameDerived || len(c.SigningName) == 0 {
 		c.SigningName = "qldb"
 	}
-	return newClient(*c.Config, c.Handlers, c.PartitionID, c.Endpoint, c.SigningRegion, c.SigningName)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, partitionID, endpoint, signingRegion, signingName string) *QLDB {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *QLDB {
 	svc := &QLDB{
 		Client: client.New(
 			cfg,
@@ -64,7 +62,6 @@ func newClient(cfg aws.Config, handlers request.Handlers, partitionID, endpoint,
 				ServiceID:     ServiceID,
 				SigningName:   signingName,
 				SigningRegion: signingRegion,
-				PartitionID:   partitionID,
 				Endpoint:      endpoint,
 				APIVersion:    "2019-01-02",
 			},

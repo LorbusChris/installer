@@ -1902,12 +1902,10 @@ func (c *DocDB) DescribeDBClustersPagesWithContext(ctx aws.Context, input *Descr
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeDBClustersOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeDBClustersOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2034,12 +2032,10 @@ func (c *DocDB) DescribeDBEngineVersionsPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeDBEngineVersionsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeDBEngineVersionsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2172,12 +2168,10 @@ func (c *DocDB) DescribeDBInstancesPagesWithContext(ctx aws.Context, input *Desc
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeDBInstancesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeDBInstancesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2310,12 +2304,10 @@ func (c *DocDB) DescribeDBSubnetGroupsPagesWithContext(ctx aws.Context, input *D
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeDBSubnetGroupsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeDBSubnetGroupsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2596,12 +2588,10 @@ func (c *DocDB) DescribeEventsPagesWithContext(ctx aws.Context, input *DescribeE
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeEventsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeEventsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2728,12 +2718,10 @@ func (c *DocDB) DescribeOrderableDBInstanceOptionsPagesWithContext(ctx aws.Conte
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeOrderableDBInstanceOptionsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeOrderableDBInstanceOptionsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

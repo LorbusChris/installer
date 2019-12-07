@@ -2380,12 +2380,10 @@ func (c *OpsWorks) DescribeEcsClustersPagesWithContext(ctx aws.Context, input *D
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeEcsClustersOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeEcsClustersOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

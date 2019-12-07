@@ -3025,12 +3025,10 @@ func (c *CloudFront) ListCloudFrontOriginAccessIdentitiesPagesWithContext(ctx aw
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListCloudFrontOriginAccessIdentitiesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListCloudFrontOriginAccessIdentitiesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -3162,12 +3160,10 @@ func (c *CloudFront) ListDistributionsPagesWithContext(ctx aws.Context, input *L
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDistributionsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDistributionsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -3547,12 +3543,10 @@ func (c *CloudFront) ListInvalidationsPagesWithContext(ctx aws.Context, input *L
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListInvalidationsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListInvalidationsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -3763,12 +3757,10 @@ func (c *CloudFront) ListStreamingDistributionsPagesWithContext(ctx aws.Context,
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListStreamingDistributionsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListStreamingDistributionsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

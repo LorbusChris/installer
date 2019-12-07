@@ -581,12 +581,10 @@ func (c *LakeFormation) GetEffectivePermissionsForPathPagesWithContext(ctx aws.C
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*GetEffectivePermissionsForPathOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*GetEffectivePermissionsForPathOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -821,12 +819,10 @@ func (c *LakeFormation) ListPermissionsPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPermissionsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPermissionsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -964,12 +960,10 @@ func (c *LakeFormation) ListResourcesPagesWithContext(ctx aws.Context, input *Li
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListResourcesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListResourcesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

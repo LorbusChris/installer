@@ -3983,12 +3983,10 @@ func (c *Route53) ListHealthChecksPagesWithContext(ctx aws.Context, input *ListH
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListHealthChecksOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListHealthChecksOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -4132,12 +4130,10 @@ func (c *Route53) ListHostedZonesPagesWithContext(ctx aws.Context, input *ListHo
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListHostedZonesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListHostedZonesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -4559,12 +4555,10 @@ func (c *Route53) ListResourceRecordSetsPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListResourceRecordSetsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListResourceRecordSetsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

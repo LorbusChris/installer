@@ -1282,12 +1282,10 @@ func (c *SecurityHub) DescribeActionTargetsPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeActionTargetsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeActionTargetsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1525,12 +1523,10 @@ func (c *SecurityHub) DescribeProductsPagesWithContext(ctx aws.Context, input *D
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeProductsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeProductsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2340,12 +2336,10 @@ func (c *SecurityHub) GetFindingsPagesWithContext(ctx aws.Context, input *GetFin
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*GetFindingsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*GetFindingsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2584,12 +2578,10 @@ func (c *SecurityHub) GetInsightsPagesWithContext(ctx aws.Context, input *GetIns
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*GetInsightsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*GetInsightsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -3106,12 +3098,10 @@ func (c *SecurityHub) ListEnabledProductsForImportPagesWithContext(ctx aws.Conte
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListEnabledProductsForImportOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListEnabledProductsForImportOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

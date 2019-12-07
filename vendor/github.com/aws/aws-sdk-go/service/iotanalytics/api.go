@@ -1818,12 +1818,10 @@ func (c *IoTAnalytics) ListChannelsPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListChannelsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListChannelsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1967,12 +1965,10 @@ func (c *IoTAnalytics) ListDatasetContentsPagesWithContext(ctx aws.Context, inpu
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDatasetContentsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDatasetContentsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2113,12 +2109,10 @@ func (c *IoTAnalytics) ListDatasetsPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDatasetsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDatasetsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2259,12 +2253,10 @@ func (c *IoTAnalytics) ListDatastoresPagesWithContext(ctx aws.Context, input *Li
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDatastoresOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDatastoresOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2405,12 +2397,10 @@ func (c *IoTAnalytics) ListPipelinesPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPipelinesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPipelinesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

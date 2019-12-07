@@ -3188,12 +3188,10 @@ func (c *SES) ListCustomVerificationEmailTemplatesPagesWithContext(ctx aws.Conte
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListCustomVerificationEmailTemplatesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListCustomVerificationEmailTemplatesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -3324,12 +3322,10 @@ func (c *SES) ListIdentitiesPagesWithContext(ctx aws.Context, input *ListIdentit
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListIdentitiesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListIdentitiesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

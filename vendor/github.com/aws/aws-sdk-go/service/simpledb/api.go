@@ -838,12 +838,10 @@ func (c *SimpleDB) ListDomainsPagesWithContext(ctx aws.Context, input *ListDomai
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDomainsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDomainsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1136,12 +1134,10 @@ func (c *SimpleDB) SelectPagesWithContext(ctx aws.Context, input *SelectInput, f
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*SelectOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*SelectOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

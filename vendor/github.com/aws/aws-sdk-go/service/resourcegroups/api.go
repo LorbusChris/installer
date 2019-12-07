@@ -633,12 +633,10 @@ func (c *ResourceGroups) ListGroupResourcesPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListGroupResourcesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListGroupResourcesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -783,12 +781,10 @@ func (c *ResourceGroups) ListGroupsPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListGroupsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListGroupsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -939,12 +935,10 @@ func (c *ResourceGroups) SearchResourcesPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*SearchResourcesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*SearchResourcesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

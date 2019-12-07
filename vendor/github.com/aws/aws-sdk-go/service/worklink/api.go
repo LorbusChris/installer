@@ -1638,12 +1638,10 @@ func (c *WorkLink) ListDevicesPagesWithContext(ctx aws.Context, input *ListDevic
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDevicesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDevicesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1784,12 +1782,10 @@ func (c *WorkLink) ListDomainsPagesWithContext(ctx aws.Context, input *ListDomai
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDomainsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDomainsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1930,12 +1926,10 @@ func (c *WorkLink) ListFleetsPagesWithContext(ctx aws.Context, input *ListFleets
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListFleetsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListFleetsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2080,12 +2074,10 @@ func (c *WorkLink) ListWebsiteAuthorizationProvidersPagesWithContext(ctx aws.Con
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListWebsiteAuthorizationProvidersOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListWebsiteAuthorizationProvidersOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2227,12 +2219,10 @@ func (c *WorkLink) ListWebsiteCertificateAuthoritiesPagesWithContext(ctx aws.Con
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListWebsiteCertificateAuthoritiesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListWebsiteCertificateAuthoritiesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

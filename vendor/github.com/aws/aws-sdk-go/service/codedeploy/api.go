@@ -2796,12 +2796,10 @@ func (c *CodeDeploy) ListApplicationRevisionsPagesWithContext(ctx aws.Context, i
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListApplicationRevisionsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListApplicationRevisionsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -2933,12 +2931,10 @@ func (c *CodeDeploy) ListApplicationsPagesWithContext(ctx aws.Context, input *Li
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListApplicationsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListApplicationsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -3070,12 +3066,10 @@ func (c *CodeDeploy) ListDeploymentConfigsPagesWithContext(ctx aws.Context, inpu
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDeploymentConfigsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDeploymentConfigsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -3217,12 +3211,10 @@ func (c *CodeDeploy) ListDeploymentGroupsPagesWithContext(ctx aws.Context, input
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDeploymentGroupsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDeploymentGroupsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -3402,12 +3394,10 @@ func (c *CodeDeploy) ListDeploymentInstancesPagesWithContext(ctx aws.Context, in
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDeploymentInstancesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDeploymentInstancesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -3667,12 +3657,10 @@ func (c *CodeDeploy) ListDeploymentsPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListDeploymentsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListDeploymentsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

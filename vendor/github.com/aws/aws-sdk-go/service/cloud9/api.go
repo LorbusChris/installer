@@ -552,12 +552,10 @@ func (c *Cloud9) DescribeEnvironmentMembershipsPagesWithContext(ctx aws.Context,
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeEnvironmentMembershipsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeEnvironmentMembershipsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -901,12 +899,10 @@ func (c *Cloud9) ListEnvironmentsPagesWithContext(ctx aws.Context, input *ListEn
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListEnvironmentsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListEnvironmentsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1814,15 +1810,11 @@ type EnvironmentLifecycle struct {
 
 	// The current creation or deletion lifecycle state of the environment.
 	//
-	//    * CREATING: The environment is in the process of being created.
-	//
 	//    * CREATED: The environment was successfully created.
 	//
-	//    * CREATE_FAILED: The environment failed to be created.
+	//    * DELETE_FAILED: The environment failed to delete.
 	//
 	//    * DELETING: The environment is in the process of being deleted.
-	//
-	//    * DELETE_FAILED: The environment failed to delete.
 	Status *string `locationName:"status" type:"string" enum:"EnvironmentLifecycleStatus"`
 }
 
@@ -2165,14 +2157,8 @@ func (s UpdateEnvironmentOutput) GoString() string {
 }
 
 const (
-	// EnvironmentLifecycleStatusCreating is a EnvironmentLifecycleStatus enum value
-	EnvironmentLifecycleStatusCreating = "CREATING"
-
 	// EnvironmentLifecycleStatusCreated is a EnvironmentLifecycleStatus enum value
 	EnvironmentLifecycleStatusCreated = "CREATED"
-
-	// EnvironmentLifecycleStatusCreateFailed is a EnvironmentLifecycleStatus enum value
-	EnvironmentLifecycleStatusCreateFailed = "CREATE_FAILED"
 
 	// EnvironmentLifecycleStatusDeleting is a EnvironmentLifecycleStatus enum value
 	EnvironmentLifecycleStatusDeleting = "DELETING"

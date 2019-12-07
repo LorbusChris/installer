@@ -156,12 +156,10 @@ func (c *Pricing) DescribeServicesPagesWithContext(ctx aws.Context, input *Descr
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeServicesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeServicesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -309,12 +307,10 @@ func (c *Pricing) GetAttributeValuesPagesWithContext(ctx aws.Context, input *Get
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*GetAttributeValuesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*GetAttributeValuesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -459,12 +455,10 @@ func (c *Pricing) GetProductsPagesWithContext(ctx aws.Context, input *GetProduct
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*GetProductsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*GetProductsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

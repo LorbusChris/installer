@@ -169,8 +169,6 @@ func (c *Organizations) AcceptHandshakeRequest(input *AcceptHandshakeInput) (req
 //
 //      * INVALID_ENUM: You specified an invalid value.
 //
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
 //
@@ -309,15 +307,34 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 // AttachPolicy API operation for AWS Organizations.
 //
 // Attaches a policy to a root, an organizational unit (OU), or an individual
-// account.
+// account. How the policy affects accounts depends on the type of policy:
 //
-// How the policy affects accounts depends on the type of policy:
-//
-//    * For more information about attaching SCPs, see How SCPs Work (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html)
-//    in the AWS Organizations User Guide.
-//
-//    * For information about attaching tag policies, see How Policy Inheritance
-//    Works (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies-inheritance.html)
+//    * Service control policy (SCP) - An SCP specifies what permissions can
+//    be delegated to users in affected member accounts. The scope of influence
+//    for a policy depends on what you attach the policy to: If you attach an
+//    SCP to a root, it affects all accounts in the organization. If you attach
+//    an SCP to an OU, it affects all accounts in that OU and in any child OUs.
+//    If you attach the policy directly to an account, it affects only that
+//    account. SCPs are JSON policies that specify the maximum permissions for
+//    an organization or organizational unit (OU). You can attach one SCP to
+//    a higher level root or OU, and a different SCP to a child OU or to an
+//    account. The child policy can further restrict only the permissions that
+//    pass through the parent filter and are available to the child. An SCP
+//    that is attached to a child can't grant a permission that the parent hasn't
+//    already granted. For example, imagine that the parent SCP allows permissions
+//    A, B, C, D, and E. The child SCP allows C, D, E, F, and G. The result
+//    is that the accounts affected by the child SCP are allowed to use only
+//    C, D, and E. They can't use A or B because the child OU filtered them
+//    out. They also can't use F and G because the parent OU filtered them out.
+//    They can't be granted back by the child SCP; child SCPs can only filter
+//    the permissions they receive from the parent SCP. AWS Organizations attaches
+//    a default SCP named "FullAWSAccess to every root, OU, and account. This
+//    default SCP allows all services and actions, enabling any new child OU
+//    or account to inherit the permissions of the parent root or OU. If you
+//    detach the default policy, you must replace it with a policy that specifies
+//    the permissions that you want to allow in that OU or account. For more
+//    information about how AWS Organizations policies permissions work, see
+//    Using Service Control Policies (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scp.html)
 //    in the AWS Organizations User Guide.
 //
 // This operation can be called only from the organization's master account.
@@ -346,11 +363,12 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -425,8 +443,8 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -459,8 +477,6 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -535,13 +551,6 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
-//
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
-//
-//   * ErrCodePolicyChangesInProgressException "PolicyChangesInProgressException"
-//   Changes to the effective policy are in progress, and its contents can't be
-//   returned. Try the operation again later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/AttachPolicy
 func (c *Organizations) AttachPolicy(input *AttachPolicyInput) (*AttachPolicyOutput, error) {
@@ -664,8 +673,6 @@ func (c *Organizations) CancelHandshakeRequest(input *CancelHandshakeInput) (req
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -829,13 +836,13 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 // in Your Organization (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_create.html)
 // in the AWS Organizations User Guide.
 //
-//    * When you create an account in an organization, the information required
-//    for the account to operate as a standalone account is not automatically
-//    collected. For example, information about the payment method and signing
-//    the end user license agreement (EULA) is not collected. If you must remove
-//    an account from your organization later, you can do so only after you
-//    provide the missing information. Follow the steps at To leave an organization
-//    as a member account (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    * When you create an account in an organization using the AWS Organizations
+//    console, API, or CLI commands, the information required for the account
+//    to operate as a standalone account, such as a payment method and signing
+//    the end user license agreement (EULA) is not automatically collected.
+//    If you must remove an account from your organization later, you can do
+//    so only after you provide the missing information. Follow the steps at
+//    To leave an organization as a member account (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
 //    in the AWS Organizations User Guide.
 //
 //    * If you get an exception that indicates that you exceeded your account
@@ -883,11 +890,12 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -962,8 +970,8 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -993,8 +1001,6 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -1192,8 +1198,8 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 // the master account in the organization in the commercial Region to assume
 // it. An AWS GovCloud (US) account is then created and associated with the
 // commercial account that you just created. A role is created in the new AWS
-// GovCloud (US) account. This role can be assumed by the AWS GovCloud (US)
-// account that is associated with the master account of the commercial organization.
+// GovCloud (US) account that can be assumed by the AWS GovCloud (US) account
+// that is associated with the master account of the commercial organization.
 // For more information and to view a diagram that explains how account access
 // works, see AWS Organizations (http://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-organizations.html)
 // in the AWS GovCloud User Guide.
@@ -1202,12 +1208,13 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 // in Your Organization (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_create.html)
 // in the AWS Organizations User Guide.
 //
-//    * You can create an account in an organization using the AWS Organizations
-//    console, API, or CLI commands. When you do, the information required for
-//    the account to operate as a standalone account, such as a payment method,
-//    is not automatically collected. If you must remove an account from your
-//    organization later, you can do so only after you provide the missing information.
-//    Follow the steps at To leave an organization as a member account (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    * When you create an account in an organization using the AWS Organizations
+//    console, API, or CLI commands, the information required for the account
+//    to operate as a standalone account, such as a payment method and signing
+//    the end user license agreement (EULA) is not automatically collected.
+//    If you must remove an account from your organization later, you can do
+//    so only after you provide the missing information. Follow the steps at
+//    To leave an organization as a member account (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
 //    in the AWS Organizations User Guide.
 //
 //    * If you get an exception that indicates that you exceeded your account
@@ -1256,11 +1263,12 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -1335,8 +1343,8 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -1366,8 +1374,6 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -1514,10 +1520,11 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 // have the relevant IAM permissions.
 //
 // By default (or if you set the FeatureSet parameter to ALL), the new organization
-// is created with all features enabled. In addition, service control policies
-// are automatically enabled in the root. If you instead create the organization
-// supporting only the consolidated billing features, no policy types are enabled
-// by default, and you can't use organization policies.
+// is created with all features enabled and service control policies automatically
+// enabled in the root. If you instead choose to create the organization supporting
+// only the consolidated billing features by setting the FeatureSet parameter
+// to CONSOLIDATED_BILLING", no policy types are enabled by default, and you
+// can't use organization policies.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1543,11 +1550,12 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -1622,8 +1630,8 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -1653,8 +1661,6 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -1823,11 +1829,12 @@ func (c *Organizations) CreateOrganizationalUnitRequest(input *CreateOrganizatio
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -1902,8 +1909,8 @@ func (c *Organizations) CreateOrganizationalUnitRequest(input *CreateOrganizatio
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -1936,8 +1943,6 @@ func (c *Organizations) CreateOrganizationalUnitRequest(input *CreateOrganizatio
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2101,11 +2106,12 @@ func (c *Organizations) CreatePolicyRequest(input *CreatePolicyInput) (req *requ
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -2180,8 +2186,8 @@ func (c *Organizations) CreatePolicyRequest(input *CreatePolicyInput) (req *requ
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -2214,8 +2220,6 @@ func (c *Organizations) CreatePolicyRequest(input *CreatePolicyInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2290,9 +2294,6 @@ func (c *Organizations) CreatePolicyRequest(input *CreatePolicyInput) (req *requ
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
-//
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/CreatePolicy
 func (c *Organizations) CreatePolicy(input *CreatePolicyInput) (*CreatePolicyOutput, error) {
@@ -2369,7 +2370,7 @@ func (c *Organizations) DeclineHandshakeRequest(input *DeclineHandshakeInput) (r
 // a new handshake request.
 //
 // After you decline a handshake, it continues to appear in the results of relevant
-// API operations for only 30 days. After that, it's deleted.
+// APIs for only 30 days. After that, it's deleted.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2416,8 +2417,6 @@ func (c *Organizations) DeclineHandshakeRequest(input *DeclineHandshakeInput) (r
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2587,8 +2586,6 @@ func (c *Organizations) DeleteOrganizationRequest(input *DeleteOrganizationInput
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2764,8 +2761,6 @@ func (c *Organizations) DeleteOrganizationalUnitRequest(input *DeleteOrganizatio
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2946,8 +2941,6 @@ func (c *Organizations) DeletePolicyRequest(input *DeletePolicyInput) (req *requ
 //
 //      * INVALID_ENUM: You specified an invalid value.
 //
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
 //
@@ -3016,9 +3009,6 @@ func (c *Organizations) DeletePolicyRequest(input *DeletePolicyInput) (req *requ
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
-//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DeletePolicy
 func (c *Organizations) DeletePolicy(input *DeletePolicyInput) (*DeletePolicyOutput, error) {
 	req, out := c.DeletePolicyRequest(input)
@@ -3085,7 +3075,7 @@ func (c *Organizations) DescribeAccountRequest(input *DescribeAccountInput) (req
 
 // DescribeAccount API operation for AWS Organizations.
 //
-// Retrieves AWS Organizations related information about the specified account.
+// Retrieves AWS Organizations-related information about the specified account.
 //
 // This operation can be called only from the organization's master account.
 //
@@ -3105,7 +3095,7 @@ func (c *Organizations) DescribeAccountRequest(input *DescribeAccountInput) (req
 //   in the IAM User Guide.
 //
 //   * ErrCodeAccountNotFoundException "AccountNotFoundException"
-//   We can't find an AWS account with the AccountId that you specified. Or the
+//   We can't find an AWS account with the AccountId that you specified, or the
 //   account whose credentials you used to make this request isn't a member of
 //   an organization.
 //
@@ -3127,8 +3117,6 @@ func (c *Organizations) DescribeAccountRequest(input *DescribeAccountInput) (req
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -3281,7 +3269,7 @@ func (c *Organizations) DescribeCreateAccountStatusRequest(input *DescribeCreate
 //   must use the credentials of an account that belongs to an organization.
 //
 //   * ErrCodeCreateAccountStatusNotFoundException "CreateAccountStatusNotFoundException"
-//   We can't find a create account request with the CreateAccountRequestId that
+//   We can't find an create account request with the CreateAccountRequestId that
 //   you specified.
 //
 //   * ErrCodeInvalidInputException "InvalidInputException"
@@ -3298,8 +3286,6 @@ func (c *Organizations) DescribeCreateAccountStatusRequest(input *DescribeCreate
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -3382,290 +3368,6 @@ func (c *Organizations) DescribeCreateAccountStatus(input *DescribeCreateAccount
 // for more information on using Contexts.
 func (c *Organizations) DescribeCreateAccountStatusWithContext(ctx aws.Context, input *DescribeCreateAccountStatusInput, opts ...request.Option) (*DescribeCreateAccountStatusOutput, error) {
 	req, out := c.DescribeCreateAccountStatusRequest(input)
-	req.SetContext(ctx)
-	req.ApplyOptions(opts...)
-	return out, req.Send()
-}
-
-const opDescribeEffectivePolicy = "DescribeEffectivePolicy"
-
-// DescribeEffectivePolicyRequest generates a "aws/request.Request" representing the
-// client's request for the DescribeEffectivePolicy operation. The "output" return
-// value will be populated with the request's response once the request completes
-// successfully.
-//
-// Use "Send" method on the returned Request to send the API call to the service.
-// the "output" return value is not valid until after Send returns without error.
-//
-// See DescribeEffectivePolicy for more information on using the DescribeEffectivePolicy
-// API call, and error handling.
-//
-// This method is useful when you want to inject custom logic or configuration
-// into the SDK's request lifecycle. Such as custom headers, or retry logic.
-//
-//
-//    // Example sending a request using the DescribeEffectivePolicyRequest method.
-//    req, resp := client.DescribeEffectivePolicyRequest(params)
-//
-//    err := req.Send()
-//    if err == nil { // resp is now filled
-//        fmt.Println(resp)
-//    }
-//
-// See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DescribeEffectivePolicy
-func (c *Organizations) DescribeEffectivePolicyRequest(input *DescribeEffectivePolicyInput) (req *request.Request, output *DescribeEffectivePolicyOutput) {
-	op := &request.Operation{
-		Name:       opDescribeEffectivePolicy,
-		HTTPMethod: "POST",
-		HTTPPath:   "/",
-	}
-
-	if input == nil {
-		input = &DescribeEffectivePolicyInput{}
-	}
-
-	output = &DescribeEffectivePolicyOutput{}
-	req = c.newRequest(op, input, output)
-	return
-}
-
-// DescribeEffectivePolicy API operation for AWS Organizations.
-//
-// Returns the contents of the effective tag policy for the account. The effective
-// tag policy is the aggregation of any tag policies the account inherits, plus
-// any policy directly that is attached to the account.
-//
-// This action returns information on tag policies only.
-//
-// For more information on policy inheritance, see How Policy Inheritance Works
-// (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies-inheritance.html)
-// in the AWS Organizations User Guide.
-//
-// This operation can be called from any account in the organization.
-//
-// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
-// with awserr.Error's Code and Message methods to get detailed information about
-// the error.
-//
-// See the AWS API reference guide for AWS Organizations's
-// API operation DescribeEffectivePolicy for usage and error information.
-//
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
-//   You don't have permissions to perform the requested operation. The user or
-//   role that is making the request must have at least one IAM permissions policy
-//   attached that grants the required permissions. For more information, see
-//   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
-//   in the IAM User Guide.
-//
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
-//   Your account isn't a member of an organization. To make this request, you
-//   must use the credentials of an account that belongs to an organization.
-//
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
-//
-//   Some of the reasons in the following list might not be applicable to this
-//   specific API or operation:
-//
-//      * ACCOUNT_CANNOT_LEAVE_WITHOUT_EULA: You attempted to remove an account
-//      from the organization that doesn't yet have enough information to exist
-//      as a standalone account. This account requires you to first agree to the
-//      AWS Customer Agreement. Follow the steps at To leave an organization when
-//      all required account information has not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
-//      in the AWS Organizations User Guide.
-//
-//      * ACCOUNT_CANNOT_LEAVE_WITHOUT_PHONE_VERIFICATION: You attempted to remove
-//      an account from the organization that doesn't yet have enough information
-//      to exist as a standalone account. This account requires you to first complete
-//      phone verification. Follow the steps at To leave an organization when
-//      all required account information has not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
-//      in the AWS Organizations User Guide.
-//
-//      * ACCOUNT_CREATION_RATE_LIMIT_EXCEEDED: You attempted to exceed the number
-//      of accounts that you can create in one day.
-//
-//      * ACCOUNT_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the limit on
-//      the number of accounts in an organization. If you need more accounts,
-//      contact AWS Support (https://console.aws.amazon.com/support/home#/) to
-//      request an increase in your limit. Or the number of invitations that you
-//      tried to send would cause you to exceed the limit of accounts in your
-//      organization. Send fewer invitations or contact AWS Support to request
-//      an increase in the number of accounts. Deleted and closed accounts still
-//      count toward your limit. If you get receive this exception when running
-//      a command immediately after creating the organization, wait one hour and
-//      try again. If after an hour it continues to fail with this error, contact
-//      AWS Support (https://console.aws.amazon.com/support/home#/).
-//
-//      * HANDSHAKE_RATE_LIMIT_EXCEEDED: You attempted to exceed the number of
-//      handshakes that you can send in one day.
-//
-//      * MASTER_ACCOUNT_ADDRESS_DOES_NOT_MATCH_MARKETPLACE: To create an account
-//      in this organization, you first must migrate the organization's master
-//      account to the marketplace that corresponds to the master account's address.
-//      For example, accounts with India addresses must be associated with the
-//      AISPL marketplace. All accounts in an organization must be associated
-//      with the same marketplace.
-//
-//      * MASTER_ACCOUNT_MISSING_CONTACT_INFO: To complete this operation, you
-//      must first provide contact a valid address and phone number for the master
-//      account. Then try the operation again.
-//
-//      * MASTER_ACCOUNT_NOT_GOVCLOUD_ENABLED: To complete this operation, the
-//      master account must have an associated account in the AWS GovCloud (US-West)
-//      Region. For more information, see AWS Organizations (http://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-organizations.html)
-//      in the AWS GovCloud User Guide.
-//
-//      * MASTER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To create an organization
-//      with this master account, you first must associate a valid payment instrument,
-//      such as a credit card, with the account. Follow the steps at To leave
-//      an organization when all required account information has not yet been
-//      provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
-//      in the AWS Organizations User Guide.
-//
-//      * MAX_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to exceed the
-//      number of policies of a certain type that can be attached to an entity
-//      at one time.
-//
-//      * MAX_TAG_LIMIT_EXCEEDED: You have exceeded the number of tags allowed
-//      on this resource.
-//
-//      * MEMBER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To complete this operation
-//      with this member account, you first must associate a valid payment instrument,
-//      such as a credit card, with the account. Follow the steps at To leave
-//      an organization when all required account information has not yet been
-//      provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
-//      in the AWS Organizations User Guide.
-//
-//      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
-//
-//      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
-//      too many levels deep.
-//
-//      * ORGANIZATION_NOT_IN_ALL_FEATURES_MODE: You attempted to perform an operation
-//      that requires the organization to be configured to support all features.
-//      An organization that supports only consolidated billing features can't
-//      perform this operation.
-//
-//      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
-//      that you can have in an organization.
-//
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
-//      policies that you can have in an organization.
-//
-//   * ErrCodeServiceException "ServiceException"
-//   AWS Organizations can't complete your request because of an internal service
-//   error. Try again later.
-//
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
-//   You have sent too many requests in too short a period of time. The limit
-//   helps protect against denial-of-service attacks. Try again later.
-//
-//   For information on limits that affect AWS Organizations, see Limits of AWS
-//   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
-//   in the AWS Organizations User Guide.
-//
-//   * ErrCodeTargetNotFoundException "TargetNotFoundException"
-//   We can't find a root, OU, or account with the TargetId that you specified.
-//
-//   * ErrCodeEffectivePolicyNotFoundException "EffectivePolicyNotFoundException"
-//   If you ran this action on the master account, this policy type is not enabled.
-//   If you ran the action on a member account, the account doesn't have an effective
-//   policy of this type. Contact the administrator of your organization about
-//   attaching a policy of this type to the account.
-//
-//   * ErrCodeInvalidInputException "InvalidInputException"
-//   The requested operation failed because you provided invalid values for one
-//   or more of the request parameters. This exception includes a reason that
-//   contains additional information about the violated limit:
-//
-//   Some of the reasons in the following list might not be applicable to this
-//   specific API or operation:
-//
-//      * IMMUTABLE_POLICY: You specified a policy that is managed by AWS and
-//      can't be modified.
-//
-//      * INPUT_REQUIRED: You must include a value for all required parameters.
-//
-//      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
-//      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
-//      characters.
-//
-//      * INVALID_LIST_MEMBER: You provided a list to a parameter that contains
-//      at least one invalid value.
-//
-//      * INVALID_PAGINATION_TOKEN: Get the value for the NextToken parameter
-//      from the response to a previous call of the operation.
-//
-//      * INVALID_PARTY_TYPE_TARGET: You specified the wrong type of entity (account,
-//      organization, or email) as a party.
-//
-//      * INVALID_PATTERN: You provided a value that doesn't match the required
-//      pattern.
-//
-//      * INVALID_PATTERN_TARGET_ID: You specified a policy target ID that doesn't
-//      match the required pattern.
-//
-//      * INVALID_ROLE_NAME: You provided a role name that isn't valid. A role
-//      name can't begin with the reserved prefix AWSServiceRoleFor.
-//
-//      * INVALID_SYNTAX_ORGANIZATION_ARN: You specified an invalid Amazon Resource
-//      Name (ARN) for the organization.
-//
-//      * INVALID_SYNTAX_POLICY_ID: You specified an invalid policy ID.
-//
-//      * INVALID_SYSTEM_TAGS_PARAMETER: You specified a tag key that is a system
-//      tag. You can’t add, edit, or delete system tag keys because they're
-//      reserved for AWS use. System tags don’t count against your tags per
-//      resource limit.
-//
-//      * MAX_FILTER_LIMIT_EXCEEDED: You can specify only one filter parameter
-//      for the operation.
-//
-//      * MAX_LENGTH_EXCEEDED: You provided a string parameter that is longer
-//      than allowed.
-//
-//      * MAX_VALUE_EXCEEDED: You provided a numeric parameter that has a larger
-//      value than allowed.
-//
-//      * MIN_LENGTH_EXCEEDED: You provided a string parameter that is shorter
-//      than allowed.
-//
-//      * MIN_VALUE_EXCEEDED: You provided a numeric parameter that has a smaller
-//      value than allowed.
-//
-//      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
-//      between entities in the same root.
-//
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
-//
-// See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DescribeEffectivePolicy
-func (c *Organizations) DescribeEffectivePolicy(input *DescribeEffectivePolicyInput) (*DescribeEffectivePolicyOutput, error) {
-	req, out := c.DescribeEffectivePolicyRequest(input)
-	return out, req.Send()
-}
-
-// DescribeEffectivePolicyWithContext is the same as DescribeEffectivePolicy with the addition of
-// the ability to pass a context and additional request options.
-//
-// See DescribeEffectivePolicy for details on how to use this API operation.
-//
-// The context must be non-nil and will be used for request cancellation. If
-// the context is nil a panic will occur. In the future the SDK may create
-// sub-contexts for http.Requests. See https://golang.org/pkg/context/
-// for more information on using Contexts.
-func (c *Organizations) DescribeEffectivePolicyWithContext(ctx aws.Context, input *DescribeEffectivePolicyInput, opts ...request.Option) (*DescribeEffectivePolicyOutput, error) {
-	req, out := c.DescribeEffectivePolicyRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3761,8 +3463,6 @@ func (c *Organizations) DescribeHandshakeRequest(input *DescribeHandshakeInput) 
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -4039,8 +3739,6 @@ func (c *Organizations) DescribeOrganizationalUnitRequest(input *DescribeOrganiz
 //
 //      * INVALID_ENUM: You specified an invalid value.
 //
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
 //
@@ -4209,8 +3907,6 @@ func (c *Organizations) DescribePolicyRequest(input *DescribePolicyInput) (req *
 //
 //      * INVALID_ENUM: You specified an invalid value.
 //
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
 //
@@ -4274,9 +3970,6 @@ func (c *Organizations) DescribePolicyRequest(input *DescribePolicyInput) (req *
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
-//
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DescribePolicy
 func (c *Organizations) DescribePolicy(input *DescribePolicyInput) (*DescribePolicyOutput, error) {
@@ -4349,16 +4042,15 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 // If the policy being detached is a service control policy (SCP), the changes
 // to permissions for IAM users and roles in affected accounts are immediate.
 //
-// Note: Every root, OU, and account must have at least one SCP attached. You
-// can replace the default FullAWSAccess policy with one that limits the permissions
-// that can be delegated. To do that, you must attach the replacement policy
+// Note: Every root, OU, and account must have at least one SCP attached. If
+// you want to replace the default FullAWSAccess policy with one that limits
+// the permissions that can be delegated, you must attach the replacement policy
 // before you can remove the default one. This is the authorization strategy
-// of using an allow list (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_whitelist).
-// You could instead attach a second SCP and leave the FullAWSAccess SCP still
-// attached. You could then specify "Effect": "Deny" in the second SCP to override
-// the "Effect": "Allow" in the FullAWSAccess policy (or any other attached
-// SCP). If you take these steps, you're using the authorization strategy of
-// a deny list (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_blacklist).
+// of whitelisting (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_whitelist).
+// If you instead attach a second SCP and leave the FullAWSAccess SCP still
+// attached, and specify "Effect": "Deny" in the second SCP to override the
+// "Effect": "Allow" in the FullAWSAccess policy (or any other attached SCP),
+// you're using the authorization strategy of blacklisting (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_blacklist) .
 //
 // This operation can be called only from the organization's master account.
 //
@@ -4386,11 +4078,12 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -4465,8 +4158,8 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -4496,8 +4189,6 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -4568,13 +4259,6 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
-//
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
-//
-//   * ErrCodePolicyChangesInProgressException "PolicyChangesInProgressException"
-//   Changes to the effective policy are in progress, and its contents can't be
-//   returned. Try the operation again later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DetachPolicy
 func (c *Organizations) DetachPolicy(input *DetachPolicyInput) (*DetachPolicyOutput, error) {
@@ -4660,9 +4344,9 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 // AWS service.
 //
 // After you perform the DisableAWSServiceAccess operation, the specified service
-// can no longer perform operations in your organization's accounts. The only
-// exception is when the operations are explicitly permitted by IAM policies
-// that are attached to your roles.
+// can no longer perform operations in your organization's accounts unless the
+// operations are explicitly permitted by the IAM policies that are attached
+// to your roles.
 //
 // For more information about integrating other services with AWS Organizations,
 // including the list of services that work with Organizations, see Integrating
@@ -4695,11 +4379,12 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -4774,8 +4459,8 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -4805,8 +4490,6 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -4935,13 +4618,11 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 
 // DisablePolicyType API operation for AWS Organizations.
 //
-// Disables an organizational control policy type in a root and detaches all
-// policies of that type from the organization root, OUs, and accounts. A policy
-// of a certain type can be attached to entities in a root only if that type
-// is enabled in the root. After you perform this operation, you no longer can
-// attach policies of the specified type to that root or to any organizational
-// unit (OU) or account in that root. You can undo this by using the EnablePolicyType
-// operation.
+// Disables an organizational control policy type in a root. A policy of a certain
+// type can be attached to entities in a root only if that type is enabled in
+// the root. After you perform this operation, you no longer can attach policies
+// of the specified type to that root or to any organizational unit (OU) or
+// account in that root. You can undo this by using the EnablePolicyType operation.
 //
 // This is an asynchronous request that AWS performs in the background. If you
 // disable a policy for a root, it still appears enabled for the organization
@@ -4978,11 +4659,12 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -5057,8 +4739,8 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -5088,8 +4770,6 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -5161,13 +4841,6 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
-//
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
-//
-//   * ErrCodePolicyChangesInProgressException "PolicyChangesInProgressException"
-//   Changes to the effective policy are in progress, and its contents can't be
-//   returned. Try the operation again later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DisablePolicyType
 func (c *Organizations) DisablePolicyType(input *DisablePolicyTypeInput) (*DisablePolicyTypeOutput, error) {
@@ -5281,11 +4954,12 @@ func (c *Organizations) EnableAWSServiceAccessRequest(input *EnableAWSServiceAcc
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -5360,8 +5034,8 @@ func (c *Organizations) EnableAWSServiceAccessRequest(input *EnableAWSServiceAcc
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -5391,8 +5065,6 @@ func (c *Organizations) EnableAWSServiceAccessRequest(input *EnableAWSServiceAcc
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -5524,7 +5196,7 @@ func (c *Organizations) EnableAllFeaturesRequest(input *EnableAllFeaturesInput) 
 // Enables all features in an organization. This enables the use of organization
 // policies that can restrict the services and actions that can be called in
 // each account. Until you enable all features, you have access only to consolidated
-// billing. You can't use any of the advanced account administration features
+// billing, and you can't use any of the advanced account administration features
 // that AWS Organizations supports. For more information, see Enabling All Features
 // in Your Organization (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html)
 // in the AWS Organizations User Guide.
@@ -5533,8 +5205,8 @@ func (c *Organizations) EnableAllFeaturesRequest(input *EnableAllFeaturesInput) 
 // with only the consolidated billing features enabled. Calling this operation
 // sends a handshake to every invited account in the organization. The feature
 // set change can be finalized and the additional features enabled only after
-// all administrators in the invited accounts approve the change. Accepting
-// the handshake approves the change.
+// all administrators in the invited accounts approve the change by accepting
+// the handshake.
 //
 // After you enable all features, you can separately enable or disable individual
 // policy types in a root using EnablePolicyType and DisablePolicyType. To see
@@ -5629,8 +5301,6 @@ func (c *Organizations) EnableAllFeaturesRequest(input *EnableAllFeaturesInput) 
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -5798,11 +5468,12 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -5877,8 +5548,8 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -5908,8 +5579,6 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -5985,13 +5654,6 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 //   Disabling a Policy Type on a Root (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies.html#enable_policies_on_root)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
-//
-//   * ErrCodePolicyChangesInProgressException "PolicyChangesInProgressException"
-//   Changes to the effective policy are in progress, and its contents can't be
-//   returned. Try the operation again later.
-//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/EnablePolicyType
 func (c *Organizations) EnablePolicyType(input *EnablePolicyTypeInput) (*EnablePolicyTypeOutput, error) {
 	req, out := c.EnablePolicyTypeRequest(input)
@@ -6064,16 +5726,16 @@ func (c *Organizations) InviteAccountToOrganizationRequest(input *InviteAccountT
 // as a Handshake whose details are in the response.
 //
 //    * You can invite AWS accounts only from the same seller as the master
-//    account. For example, assume that your organization's master account was
-//    created by Amazon Internet Services Pvt. Ltd (AISPL), an AWS seller in
-//    India. You can invite only other AISPL accounts to your organization.
-//    You can't combine accounts from AISPL and AWS or from any other AWS seller.
-//    For more information, see Consolidated Billing in India (http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/useconsolidatedbilliing-India.html).
+//    account. For example, if your organization's master account was created
+//    by Amazon Internet Services Pvt. Ltd (AISPL), an AWS seller in India,
+//    you can invite only other AISPL accounts to your organization. You can't
+//    combine accounts from AISPL and AWS or from any other AWS seller. For
+//    more information, see Consolidated Billing in India (http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/useconsolidatedbilliing-India.html).
 //
-//    * You might receive an exception that indicates that you exceeded your
-//    account limits for the organization or that the operation failed because
-//    your organization is still initializing. If so, wait one hour and then
-//    try again. If the error persists after an hour, contact AWS Support (https://console.aws.amazon.com/support/home#/).
+//    * If you receive an exception that indicates that you exceeded your account
+//    limits for the organization or that the operation failed because your
+//    organization is still initializing, wait one hour and then try again.
+//    If the error persists after an hour, contact AWS Support (https://console.aws.amazon.com/support/home#/).
 //
 // This operation can be called only from the organization's master account.
 //
@@ -6167,8 +5829,6 @@ func (c *Organizations) InviteAccountToOrganizationRequest(input *InviteAccountT
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -6313,21 +5973,20 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //
 //    * The master account in an organization with all features enabled can
 //    set service control policies (SCPs) that can restrict what administrators
-//    of member accounts can do. These restrictions can include preventing member
-//    accounts from successfully calling LeaveOrganization.
+//    of member accounts can do, including preventing them from successfully
+//    calling LeaveOrganization and leaving the organization.
 //
 //    * You can leave an organization as a member account only if the account
 //    is configured with the information required to operate as a standalone
 //    account. When you create an account in an organization using the AWS Organizations
-//    console, API, or CLI, the information required of standalone accounts
-//    is not automatically collected. For each account that you want to make
-//    standalone, you must accept the end user license agreement (EULA). You
-//    must also choose a support plan, provide and verify the required contact
-//    information, and provide a current payment method. AWS uses the payment
-//    method to charge for any billable (not free tier) AWS activity that occurs
-//    while the account isn't attached to an organization. Follow the steps
-//    at To leave an organization when all required account information has
-//    not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    console, API, or CLI commands, the information required of standalone
+//    accounts is not automatically collected. For each account that you want
+//    to make standalone, you must accept the end user license agreement (EULA),
+//    choose a support plan, provide and verify the required contact information,
+//    and provide a current payment method. AWS uses the payment method to charge
+//    for any billable (not free tier) AWS activity that occurs while the account
+//    isn't attached to an organization. Follow the steps at To leave an organization
+//    when all required account information has not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
 //    in the AWS Organizations User Guide.
 //
 //    * You can leave an organization only after you enable IAM user access
@@ -6351,7 +6010,7 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //   in the IAM User Guide.
 //
 //   * ErrCodeAccountNotFoundException "AccountNotFoundException"
-//   We can't find an AWS account with the AccountId that you specified. Or the
+//   We can't find an AWS account with the AccountId that you specified, or the
 //   account whose credentials you used to make this request isn't a member of
 //   an organization.
 //
@@ -6364,11 +6023,12 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -6443,8 +6103,8 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -6474,8 +6134,6 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -6647,11 +6305,12 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationRequest(input *ListAW
 //   must use the credentials of an account that belongs to an organization.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -6726,8 +6385,8 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationRequest(input *ListAW
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -6757,8 +6416,6 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationRequest(input *ListAW
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -6886,12 +6543,10 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationPagesWithContext(ctx 
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListAWSServiceAccessForOrganizationOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListAWSServiceAccessForOrganizationOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -6989,8 +6644,6 @@ func (c *Organizations) ListAccountsRequest(input *ListAccountsInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -7118,12 +6771,10 @@ func (c *Organizations) ListAccountsPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListAccountsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListAccountsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -7223,8 +6874,6 @@ func (c *Organizations) ListAccountsForParentRequest(input *ListAccountsForParen
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -7355,12 +7004,10 @@ func (c *Organizations) ListAccountsForParentPagesWithContext(ctx aws.Context, i
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListAccountsForParentOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListAccountsForParentOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -7458,8 +7105,6 @@ func (c *Organizations) ListChildrenRequest(input *ListChildrenInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -7590,12 +7235,10 @@ func (c *Organizations) ListChildrenPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListChildrenOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListChildrenOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -7692,8 +7335,6 @@ func (c *Organizations) ListCreateAccountStatusRequest(input *ListCreateAccountS
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -7824,12 +7465,10 @@ func (c *Organizations) ListCreateAccountStatusPagesWithContext(ctx aws.Context,
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListCreateAccountStatusOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListCreateAccountStatusOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -7930,8 +7569,6 @@ func (c *Organizations) ListHandshakesForAccountRequest(input *ListHandshakesFor
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -8059,12 +7696,10 @@ func (c *Organizations) ListHandshakesForAccountPagesWithContext(ctx aws.Context
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListHandshakesForAccountOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListHandshakesForAccountOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -8171,8 +7806,6 @@ func (c *Organizations) ListHandshakesForOrganizationRequest(input *ListHandshak
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -8300,12 +7933,10 @@ func (c *Organizations) ListHandshakesForOrganizationPagesWithContext(ctx aws.Co
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListHandshakesForOrganizationOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListHandshakesForOrganizationOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -8401,8 +8032,6 @@ func (c *Organizations) ListOrganizationalUnitsForParentRequest(input *ListOrgan
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -8533,12 +8162,10 @@ func (c *Organizations) ListOrganizationalUnitsForParentPagesWithContext(ctx aws
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListOrganizationalUnitsForParentOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListOrganizationalUnitsForParentOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -8642,8 +8269,6 @@ func (c *Organizations) ListParentsRequest(input *ListParentsInput) (req *reques
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -8771,12 +8396,10 @@ func (c *Organizations) ListParentsPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListParentsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListParentsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -8873,8 +8496,6 @@ func (c *Organizations) ListPoliciesRequest(input *ListPoliciesInput) (req *requ
 //
 //      * INVALID_ENUM: You specified an invalid value.
 //
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
 //
@@ -8935,9 +8556,6 @@ func (c *Organizations) ListPoliciesRequest(input *ListPoliciesInput) (req *requ
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
-//
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/ListPolicies
 func (c *Organizations) ListPolicies(input *ListPoliciesInput) (*ListPoliciesOutput, error) {
@@ -9004,12 +8622,10 @@ func (c *Organizations) ListPoliciesPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPoliciesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPoliciesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -9108,8 +8724,6 @@ func (c *Organizations) ListPoliciesForTargetRequest(input *ListPoliciesForTarge
 //
 //      * INVALID_ENUM: You specified an invalid value.
 //
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
 //
@@ -9173,9 +8787,6 @@ func (c *Organizations) ListPoliciesForTargetRequest(input *ListPoliciesForTarge
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
-//
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/ListPoliciesForTarget
 func (c *Organizations) ListPoliciesForTarget(input *ListPoliciesForTargetInput) (*ListPoliciesForTargetOutput, error) {
@@ -9242,12 +8853,10 @@ func (c *Organizations) ListPoliciesForTargetPagesWithContext(ctx aws.Context, i
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPoliciesForTargetOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPoliciesForTargetOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -9349,8 +8958,6 @@ func (c *Organizations) ListRootsRequest(input *ListRootsInput) (req *request.Re
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -9478,12 +9085,10 @@ func (c *Organizations) ListRootsPagesWithContext(ctx aws.Context, input *ListRo
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListRootsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListRootsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -9579,8 +9184,6 @@ func (c *Organizations) ListTagsForResourceRequest(input *ListTagsForResourceInp
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -9708,12 +9311,10 @@ func (c *Organizations) ListTagsForResourcePagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -9811,8 +9412,6 @@ func (c *Organizations) ListTargetsForPolicyRequest(input *ListTargetsForPolicyI
 //
 //      * INVALID_ENUM: You specified an invalid value.
 //
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
 //
@@ -9876,9 +9475,6 @@ func (c *Organizations) ListTargetsForPolicyRequest(input *ListTargetsForPolicyI
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
-//
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/ListTargetsForPolicy
 func (c *Organizations) ListTargetsForPolicy(input *ListTargetsForPolicyInput) (*ListTargetsForPolicyOutput, error) {
@@ -9945,12 +9541,10 @@ func (c *Organizations) ListTargetsForPolicyPagesWithContext(ctx aws.Context, in
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListTargetsForPolicyOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListTargetsForPolicyOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -10034,8 +9628,6 @@ func (c *Organizations) MoveAccountRequest(input *MoveAccountInput) (req *reques
 //
 //      * INVALID_ENUM: You specified an invalid value.
 //
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
 //
@@ -10096,7 +9688,7 @@ func (c *Organizations) MoveAccountRequest(input *MoveAccountInput) (req *reques
 //   That account is already present in the specified destination.
 //
 //   * ErrCodeAccountNotFoundException "AccountNotFoundException"
-//   We can't find an AWS account with the AccountId that you specified. Or the
+//   We can't find an AWS account with the AccountId that you specified, or the
 //   account whose credentials you used to make this request isn't a member of
 //   an organization.
 //
@@ -10201,15 +9793,15 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 // You can remove an account from your organization only if the account is configured
 // with the information required to operate as a standalone account. When you
 // create an account in an organization using the AWS Organizations console,
-// API, or CLI, the information required of standalone accounts is not automatically
-// collected. For an account that you want to make standalone, you must accept
-// the end user license agreement (EULA). You must also choose a support plan,
+// API, or CLI commands, the information required of standalone accounts is
+// not automatically collected. For an account that you want to make standalone,
+// you must accept the end user license agreement (EULA), choose a support plan,
 // provide and verify the required contact information, and provide a current
 // payment method. AWS uses the payment method to charge for any billable (not
 // free tier) AWS activity that occurs while the account isn't attached to an
 // organization. To remove an account that doesn't yet have this information,
-// you must sign in as the member account. Then follow the steps at To leave
-// an organization when all required account information has not yet been provided
+// you must sign in as the member account and follow the steps at To leave an
+// organization when all required account information has not yet been provided
 // (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
 // in the AWS Organizations User Guide.
 //
@@ -10229,7 +9821,7 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 //   in the IAM User Guide.
 //
 //   * ErrCodeAccountNotFoundException "AccountNotFoundException"
-//   We can't find an AWS account with the AccountId that you specified. Or the
+//   We can't find an AWS account with the AccountId that you specified, or the
 //   account whose credentials you used to make this request isn't a member of
 //   an organization.
 //
@@ -10242,11 +9834,12 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -10321,8 +9914,8 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -10352,8 +9945,6 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -10521,11 +10112,12 @@ func (c *Organizations) TagResourceRequest(input *TagResourceInput) (req *reques
 //   We can't find a root, OU, or account with the TargetId that you specified.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -10600,8 +10192,8 @@ func (c *Organizations) TagResourceRequest(input *TagResourceInput) (req *reques
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -10631,8 +10223,6 @@ func (c *Organizations) TagResourceRequest(input *TagResourceInput) (req *reques
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -10795,11 +10385,12 @@ func (c *Organizations) UntagResourceRequest(input *UntagResourceInput) (req *re
 //   We can't find a root, OU, or account with the TargetId that you specified.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -10874,8 +10465,8 @@ func (c *Organizations) UntagResourceRequest(input *UntagResourceInput) (req *re
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -10905,8 +10496,6 @@ func (c *Organizations) UntagResourceRequest(input *UntagResourceInput) (req *re
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -11082,8 +10671,6 @@ func (c *Organizations) UpdateOrganizationalUnitRequest(input *UpdateOrganizatio
 //
 //      * INVALID_ENUM: You specified an invalid value.
 //
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
-//
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
 //
@@ -11244,11 +10831,12 @@ func (c *Organizations) UpdatePolicyRequest(input *UpdatePolicyInput) (req *requ
 //   Try again later.
 //
 //   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. Examples
-//   include attempting to remove the last service control policy (SCP) from an
-//   OU or root, or attaching too many policies to an account, OU, or root. This
-//   exception includes a reason that contains additional information about the
-//   violated limit.
+//   Performing this operation violates a minimum or maximum value limit. For
+//   example, attempting to remove the last service control policy (SCP) from
+//   an OU or root, inviting or creating too many accounts to the organization,
+//   or attaching too many policies to an account, OU, or root. This exception
+//   includes a reason that contains additional information about the violated
+//   limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -11323,8 +10911,8 @@ func (c *Organizations) UpdatePolicyRequest(input *UpdatePolicyInput) (req *requ
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity, which would cause the entity to have fewer than
-//      the minimum number of policies of the required type.
+//      policy from an entity that would cause the entity to have fewer than the
+//      minimum number of policies of a certain type required.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -11357,8 +10945,6 @@ func (c *Organizations) UpdatePolicyRequest(input *UpdatePolicyInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
-//
-//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -11430,13 +11016,6 @@ func (c *Organizations) UpdatePolicyRequest(input *UpdatePolicyInput) (req *requ
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
-//   This action isn't available in the current Region.
-//
-//   * ErrCodePolicyChangesInProgressException "PolicyChangesInProgressException"
-//   Changes to the effective policy are in progress, and its contents can't be
-//   returned. Try the operation again later.
-//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/UpdatePolicy
 func (c *Organizations) UpdatePolicy(input *UpdatePolicyInput) (*UpdatePolicyOutput, error) {
 	req, out := c.UpdatePolicyRequest(input)
@@ -11465,7 +11044,7 @@ type AcceptHandshakeInput struct {
 	// The unique identifier (ID) of the handshake that you want to accept.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for handshake ID string
-	// requires "h-" followed by from 8 to 32 lowercase letters or digits.
+	// requires "h-" followed by from 8 to 32 lower-case letters or digits.
 	//
 	// HandshakeId is a required field
 	HandshakeId *string `type:"string" required:"true"`
@@ -11537,7 +11116,7 @@ type Account struct {
 	// The email address associated with the AWS account.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters that represents a standard internet email address.
+	// a string of characters that represents a standard Internet email address.
 	Email *string `min:"6" type:"string" sensitive:"true"`
 
 	// The unique identifier (ID) of the account.
@@ -11622,7 +11201,7 @@ type AttachPolicyInput struct {
 	// You can get the ID for the policy by calling the ListPolicies operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lowercase letters or digits.
+	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -11634,15 +11213,15 @@ type AttachPolicyInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a target ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
 	//    * Account - A string that consists of exactly 12 digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lowercase letters or digits.
+	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
+	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
+	//    lower-case letters or digits.
 	//
 	// TargetId is a required field
 	TargetId *string `type:"string" required:"true"`
@@ -11707,7 +11286,7 @@ type CancelHandshakeInput struct {
 	// can get the ID from the ListHandshakesForOrganization operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for handshake ID string
-	// requires "h-" followed by from 8 to 32 lowercase letters or digits.
+	// requires "h-" followed by from 8 to 32 lower-case letters or digits.
 	//
 	// HandshakeId is a required field
 	HandshakeId *string `type:"string" required:"true"`
@@ -11774,12 +11353,12 @@ type Child struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a child ID string
 	// requires one of the following:
 	//
-	//    * Account: A string that consists of exactly 12 digits.
+	//    * Account: a string that consists of exactly 12 digits.
 	//
-	//    * Organizational unit (OU): A string that begins with "ou-" followed by
+	//    * Organizational unit (OU): a string that begins with "ou-" followed by
 	//    from 4 to 32 lower-case letters or digits (the ID of the root that contains
-	//    the OU). This string is followed by a second "-" dash and from 8 to 32
-	//    additional lower-case letters or digits.
+	//    the OU) followed by a second "-" dash and from 8 to 32 additional lower-case
+	//    letters or digits.
 	Id *string `type:"string"`
 
 	// The type of this child entity.
@@ -11832,9 +11411,9 @@ type CreateAccountInput struct {
 	// Console (https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/grantaccess.html#ControllingAccessWebsite-Activate)
 	// in the AWS Billing and Cost Management User Guide.
 	//
-	// If you don't specify this parameter, the value defaults to ALLOW. This value
-	// allows IAM users and roles with the required permissions to access billing
-	// information for the new account.
+	// If you don't specify this parameter, the value defaults to ALLOW, and IAM
+	// users and roles with the required permissions can access billing information
+	// for the new account.
 	IamUserAccessToBilling *string `type:"string" enum:"IAMUserAccessToBilling"`
 
 	// (Optional)
@@ -11850,13 +11429,14 @@ type CreateAccountInput struct {
 	// For more information about how to use this role to access the member account,
 	// see Accessing and Administering the Member Accounts in Your Organization
 	// (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access.html#orgs_manage_accounts_create-cross-account-role)
-	// in the AWS Organizations User Guide. Also see steps 2 and 3 in Tutorial:
-	// Delegate Access Across AWS Accounts Using IAM Roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html)
+	// in the AWS Organizations User Guide, and steps 2 and 3 in Tutorial: Delegate
+	// Access Across AWS Accounts Using IAM Roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html)
 	// in the IAM User Guide.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) that is used to validate
-	// this parameter. The pattern can include uppercase letters, lowercase letters,
-	// digits with no spaces, and any of the following characters: =,.@-
+	// this parameter is a string of characters that can consist of uppercase letters,
+	// lowercase letters, digits with no spaces, and any of the following characters:
+	// =,.@-
 	RoleName *string `type:"string"`
 }
 
@@ -11983,7 +11563,7 @@ type CreateAccountStatus struct {
 	//    you provided is not valid.
 	//
 	//    * INTERNAL_FAILURE: The account could not be created because of an internal
-	//    failure. Try again later. If the problem persists, contact AWS Support.
+	//    failure. Try again later. If the problem persists, contact Customer Support.
 	FailureReason *string `type:"string" enum:"CreateAccountFailureReason"`
 
 	// If the account was created successfully, the unique identifier (ID) of the
@@ -11993,7 +11573,7 @@ type CreateAccountStatus struct {
 	// The unique identifier (ID) that references this request. You get this value
 	// from the response of the initial CreateAccount request to create the account.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for a create account
+	// The regex pattern (http://wikipedia.org/wiki/regex) for an create account
 	// request ID string requires "car-" followed by from 8 to 32 lower-case letters
 	// or digits.
 	Id *string `type:"string"`
@@ -12077,8 +11657,8 @@ type CreateGovCloudAccountInput struct {
 	// creation. You can't access the root user of the account or remove an account
 	// that was created with an invalid email address. Like all request parameters
 	// for CreateGovCloudAccount, the request for the email address for the AWS
-	// GovCloud (US) account originates from the commercial Region. It does not
-	// come from the AWS GovCloud (US) Region.
+	// GovCloud (US) account originates from the commercial Region, not from the
+	// AWS GovCloud (US) Region.
 	//
 	// Email is a required field
 	Email *string `min:"6" type:"string" required:"true" sensitive:"true"`
@@ -12108,13 +11688,14 @@ type CreateGovCloudAccountInput struct {
 	// For more information about how to use this role to access the member account,
 	// see Accessing and Administering the Member Accounts in Your Organization
 	// (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access.html#orgs_manage_accounts_create-cross-account-role)
-	// in the AWS Organizations User Guide. See also steps 2 and 3 in Tutorial:
-	// Delegate Access Across AWS Accounts Using IAM Roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html)
+	// in the AWS Organizations User Guide and steps 2 and 3 in Tutorial: Delegate
+	// Access Across AWS Accounts Using IAM Roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html)
 	// in the IAM User Guide.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) that is used to validate
-	// this parameter. The pattern can include uppercase letters, lowercase letters,
-	// digits with no spaces, and any of the following characters: =,.@-
+	// this parameter is a string of characters that can consist of uppercase letters,
+	// lowercase letters, digits with no spaces, and any of the following characters:
+	// =,.@-
 	RoleName *string `type:"string"`
 }
 
@@ -12210,8 +11791,8 @@ type CreateOrganizationInput struct {
 	//    in the AWS Organizations User Guide. The consolidated billing feature
 	//    subset isn't available for organizations in the AWS GovCloud (US) Region.
 	//
-	//    * ALL: In addition to all the features that consolidated billing feature
-	//    set supports, the master account can also apply any policy type to any
+	//    * ALL: In addition to all the features supported by the consolidated billing
+	//    feature set, the master account can also apply any policy type to any
 	//    member account in the organization. For more information, see All features
 	//    (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html#feature-set-all)
 	//    in the AWS Organizations User Guide.
@@ -12271,13 +11852,13 @@ type CreateOrganizationalUnitInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lowercase letters or digits.
+	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
+	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
+	//    lower-case letters or digits.
 	//
 	// ParentId is a required field
 	ParentId *string `type:"string" required:"true"`
@@ -12350,12 +11931,12 @@ func (s *CreateOrganizationalUnitOutput) SetOrganizationalUnit(v *Organizational
 type CreatePolicyInput struct {
 	_ struct{} `type:"structure"`
 
-	// The policy content to add to the new policy. For example, you could create
-	// a service control policy (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scp.html)
-	// (SCP) that specifies the permissions that administrators in attached accounts
-	// can delegate to their users, groups, and roles. The string for this SCP must
-	// be JSON text. For more information about the SCP syntax, see Service Control
-	// Policy Syntax (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_scp-syntax.html)
+	// The policy content to add to the new policy. For example, if you create a
+	// service control policy (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scp.html)
+	// (SCP), this string must be JSON text that specifies the permissions that
+	// admins in attached accounts can delegate to their users, groups, and roles.
+	// For more information about the SCP syntax, see Service Control Policy Syntax
+	// (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_scp-syntax.html)
 	// in the AWS Organizations User Guide.
 	//
 	// Content is a required field
@@ -12376,6 +11957,9 @@ type CreatePolicyInput struct {
 	Name *string `min:"1" type:"string" required:"true"`
 
 	// The type of policy to create.
+	//
+	// In the current release, the only type of policy that you can create is a
+	// service control policy (SCP).
 	//
 	// Type is a required field
 	Type *string `type:"string" required:"true" enum:"PolicyType"`
@@ -12473,7 +12057,7 @@ type DeclineHandshakeInput struct {
 	// can get the ID from the ListHandshakesForAccount operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for handshake ID string
-	// requires "h-" followed by from 8 to 32 lowercase letters or digits.
+	// requires "h-" followed by from 8 to 32 lower-case letters or digits.
 	//
 	// HandshakeId is a required field
 	HandshakeId *string `type:"string" required:"true"`
@@ -12567,9 +12151,9 @@ type DeleteOrganizationalUnitInput struct {
 	// You can get the ID from the ListOrganizationalUnitsForParent operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for an organizational
-	// unit ID string requires "ou-" followed by from 4 to 32 lowercase letters
-	// or digits (the ID of the root that contains the OU). This string is followed
-	// by a second "-" dash and from 8 to 32 additional lowercase letters or digits.
+	// unit ID string requires "ou-" followed by from 4 to 32 lower-case letters
+	// or digits (the ID of the root that contains the OU) followed by a second
+	// "-" dash and from 8 to 32 additional lower-case letters or digits.
 	//
 	// OrganizationalUnitId is a required field
 	OrganizationalUnitId *string `type:"string" required:"true"`
@@ -12625,7 +12209,7 @@ type DeletePolicyInput struct {
 	// get the ID from the ListPolicies or ListPoliciesForTarget operations.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lowercase letters or digits.
+	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -12747,7 +12331,7 @@ type DescribeCreateAccountStatusInput struct {
 	// ListCreateAccountStatus operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a create account
-	// request ID string requires "car-" followed by from 8 to 32 lowercase letters
+	// request ID string requires "car-" followed by from 8 to 32 lower-case letters
 	// or digits.
 	//
 	// CreateAccountRequestId is a required field
@@ -12806,78 +12390,6 @@ func (s *DescribeCreateAccountStatusOutput) SetCreateAccountStatus(v *CreateAcco
 	return s
 }
 
-type DescribeEffectivePolicyInput struct {
-	_ struct{} `type:"structure"`
-
-	// The type of policy that you want information about.
-	//
-	// PolicyType is a required field
-	PolicyType *string `type:"string" required:"true" enum:"EffectivePolicyType"`
-
-	// When you're signed in as the master account, specify the ID of the account
-	// that you want details about. Specifying an organization root or OU as the
-	// target is not supported.
-	TargetId *string `type:"string"`
-}
-
-// String returns the string representation
-func (s DescribeEffectivePolicyInput) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s DescribeEffectivePolicyInput) GoString() string {
-	return s.String()
-}
-
-// Validate inspects the fields of the type to determine if they are valid.
-func (s *DescribeEffectivePolicyInput) Validate() error {
-	invalidParams := request.ErrInvalidParams{Context: "DescribeEffectivePolicyInput"}
-	if s.PolicyType == nil {
-		invalidParams.Add(request.NewErrParamRequired("PolicyType"))
-	}
-
-	if invalidParams.Len() > 0 {
-		return invalidParams
-	}
-	return nil
-}
-
-// SetPolicyType sets the PolicyType field's value.
-func (s *DescribeEffectivePolicyInput) SetPolicyType(v string) *DescribeEffectivePolicyInput {
-	s.PolicyType = &v
-	return s
-}
-
-// SetTargetId sets the TargetId field's value.
-func (s *DescribeEffectivePolicyInput) SetTargetId(v string) *DescribeEffectivePolicyInput {
-	s.TargetId = &v
-	return s
-}
-
-type DescribeEffectivePolicyOutput struct {
-	_ struct{} `type:"structure"`
-
-	// The contents of the effective policy.
-	EffectivePolicy *EffectivePolicy `type:"structure"`
-}
-
-// String returns the string representation
-func (s DescribeEffectivePolicyOutput) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s DescribeEffectivePolicyOutput) GoString() string {
-	return s.String()
-}
-
-// SetEffectivePolicy sets the EffectivePolicy field's value.
-func (s *DescribeEffectivePolicyOutput) SetEffectivePolicy(v *EffectivePolicy) *DescribeEffectivePolicyOutput {
-	s.EffectivePolicy = v
-	return s
-}
-
 type DescribeHandshakeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -12886,7 +12398,7 @@ type DescribeHandshakeInput struct {
 	// or from a call to ListHandshakesForAccount or ListHandshakesForOrganization.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for handshake ID string
-	// requires "h-" followed by from 8 to 32 lowercase letters or digits.
+	// requires "h-" followed by from 8 to 32 lower-case letters or digits.
 	//
 	// HandshakeId is a required field
 	HandshakeId *string `type:"string" required:"true"`
@@ -12988,9 +12500,9 @@ type DescribeOrganizationalUnitInput struct {
 	// about. You can get the ID from the ListOrganizationalUnitsForParent operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for an organizational
-	// unit ID string requires "ou-" followed by from 4 to 32 lowercase letters
-	// or digits (the ID of the root that contains the OU). This string is followed
-	// by a second "-" dash and from 8 to 32 additional lowercase letters or digits.
+	// unit ID string requires "ou-" followed by from 4 to 32 lower-case letters
+	// or digits (the ID of the root that contains the OU) followed by a second
+	// "-" dash and from 8 to 32 additional lower-case letters or digits.
 	//
 	// OrganizationalUnitId is a required field
 	OrganizationalUnitId *string `type:"string" required:"true"`
@@ -13055,7 +12567,7 @@ type DescribePolicyInput struct {
 	// can get the ID from the ListPolicies or ListPoliciesForTarget operations.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lowercase letters or digits.
+	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -13120,7 +12632,7 @@ type DetachPolicyInput struct {
 	// the ID from the ListPolicies or ListPoliciesForTarget operations.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lowercase letters or digits.
+	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -13132,15 +12644,15 @@ type DetachPolicyInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a target ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
 	//    * Account - A string that consists of exactly 12 digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lowercase letters or digits.
+	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
+	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
+	//    lower-case letters or digits.
 	//
 	// TargetId is a required field
 	TargetId *string `type:"string" required:"true"`
@@ -13267,7 +12779,7 @@ type DisablePolicyTypeInput struct {
 	// type. You can get the ID from the ListRoots operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a root ID string
-	// requires "r-" followed by from 4 to 32 lowercase letters or digits.
+	// requires "r-" followed by from 4 to 32 lower-case letters or digits.
 	//
 	// RootId is a required field
 	RootId *string `type:"string" required:"true"`
@@ -13331,59 +12843,6 @@ func (s DisablePolicyTypeOutput) GoString() string {
 // SetRoot sets the Root field's value.
 func (s *DisablePolicyTypeOutput) SetRoot(v *Root) *DisablePolicyTypeOutput {
 	s.Root = v
-	return s
-}
-
-// Contains rules to be applied to the affected accounts. The effective policy
-// is the aggregation of any policies the account inherits, plus any policy
-// directly attached to the account.
-type EffectivePolicy struct {
-	_ struct{} `type:"structure"`
-
-	// The time of the last update to this policy.
-	LastUpdatedTimestamp *time.Time `type:"timestamp"`
-
-	// The text content of the policy.
-	PolicyContent *string `min:"1" type:"string"`
-
-	// The policy type.
-	PolicyType *string `type:"string" enum:"EffectivePolicyType"`
-
-	// The account ID of the policy target.
-	TargetId *string `type:"string"`
-}
-
-// String returns the string representation
-func (s EffectivePolicy) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s EffectivePolicy) GoString() string {
-	return s.String()
-}
-
-// SetLastUpdatedTimestamp sets the LastUpdatedTimestamp field's value.
-func (s *EffectivePolicy) SetLastUpdatedTimestamp(v time.Time) *EffectivePolicy {
-	s.LastUpdatedTimestamp = &v
-	return s
-}
-
-// SetPolicyContent sets the PolicyContent field's value.
-func (s *EffectivePolicy) SetPolicyContent(v string) *EffectivePolicy {
-	s.PolicyContent = &v
-	return s
-}
-
-// SetPolicyType sets the PolicyType field's value.
-func (s *EffectivePolicy) SetPolicyType(v string) *EffectivePolicy {
-	s.PolicyType = &v
-	return s
-}
-
-// SetTargetId sets the TargetId field's value.
-func (s *EffectivePolicy) SetTargetId(v string) *EffectivePolicy {
-	s.TargetId = &v
 	return s
 }
 
@@ -13494,7 +12953,7 @@ type EnablePolicyTypeInput struct {
 	// type. You can get the ID from the ListRoots operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a root ID string
-	// requires "r-" followed by from 4 to 32 lowercase letters or digits.
+	// requires "r-" followed by from 4 to 32 lower-case letters or digits.
 	//
 	// RootId is a required field
 	RootId *string `type:"string" required:"true"`
@@ -13598,13 +13057,13 @@ func (s *EnabledServicePrincipal) SetServicePrincipal(v string) *EnabledServiceP
 }
 
 // Contains information that must be exchanged to securely establish a relationship
-// between two accounts (an originator and a recipient). For example, assume
-// that a master account (the originator) invites another account (the recipient)
-// to join its organization. In that case, the two accounts exchange information
-// as a series of handshake requests and responses.
+// between two accounts (an originator and a recipient). For example, when a
+// master account (the originator) invites another account (the recipient) to
+// join its organization, the two accounts exchange information as a series
+// of handshake requests and responses.
 //
 // Note: Handshakes that are CANCELED, ACCEPTED, or DECLINED show up in lists
-// for only 30 days after entering that state. After that, they are deleted.
+// for only 30 days after entering that state After that they are deleted.
 type Handshake struct {
 	_ struct{} `type:"structure"`
 
@@ -14342,13 +13801,13 @@ type ListChildrenInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lowercase letters or digits.
+	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
+	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
+	//    lower-case letters or digits.
 	//
 	// ParentId is a required field
 	ParentId *string `type:"string" required:"true"`
@@ -14553,9 +14012,9 @@ type ListHandshakesForAccountInput struct {
 	// Filters the handshakes that you want included in the response. The default
 	// is all types. Use the ActionType element to limit the output to only a specified
 	// type, such as INVITE, ENABLE_ALL_FEATURES, or APPROVE_ALL_FEATURES. Alternatively,
-	// you can specify the ENABLE_ALL_FEATURES handshake, which generates a separate
-	// child handshake for each member account. When you do specify ParentHandshakeId
-	// to see only the handshakes that were generated by that parent request.
+	// for the ENABLE_ALL_FEATURES handshake that generates a separate child handshake
+	// for each member account, you can specify ParentHandshakeId to see only the
+	// handshakes that were generated by that parent request.
 	Filter *HandshakeFilter `type:"structure"`
 
 	// (Optional) Use this to limit the number of results you want included per
@@ -14660,9 +14119,9 @@ type ListHandshakesForOrganizationInput struct {
 	// A filter of the handshakes that you want included in the response. The default
 	// is all types. Use the ActionType element to limit the output to only a specified
 	// type, such as INVITE, ENABLE-ALL-FEATURES, or APPROVE-ALL-FEATURES. Alternatively,
-	// you can specify the ENABLE-ALL-FEATURES handshake, which generates a separate
-	// child handshake for each member account. When you do, specify the ParentHandshakeId
-	// to see only the handshakes that were generated by that parent request.
+	// for the ENABLE-ALL-FEATURES handshake that generates a separate child handshake
+	// for each member account, you can specify the ParentHandshakeId to see only
+	// the handshakes that were generated by that parent request.
 	Filter *HandshakeFilter `type:"structure"`
 
 	// (Optional) Use this to limit the number of results you want included per
@@ -14787,13 +14246,13 @@ type ListOrganizationalUnitsForParentInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lowercase letters or digits.
+	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
+	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
+	//    lower-case letters or digits.
 	//
 	// ParentId is a required field
 	ParentId *string `type:"string" required:"true"`
@@ -14891,9 +14350,9 @@ type ListParentsInput struct {
 	//    * Account - A string that consists of exactly 12 digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lowercase letters or digits (the ID of the root that contains
-	//    the OU). This string is followed by a second "-" dash and from 8 to 32
-	//    additional lowercase letters or digits.
+	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
+	//    contains the OU) followed by a second "-" dash and from 8 to 32 additional
+	//    lower-case letters or digits.
 	//
 	// ChildId is a required field
 	ChildId *string `type:"string" required:"true"`
@@ -15027,15 +14486,15 @@ type ListPoliciesForTargetInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a target ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
 	//    * Account - A string that consists of exactly 12 digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lowercase letters or digits.
+	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
+	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
+	//    lower-case letters or digits.
 	//
 	// TargetId is a required field
 	TargetId *string `type:"string" required:"true"`
@@ -15439,7 +14898,7 @@ type ListTargetsForPolicyInput struct {
 	// The unique identifier (ID) of the policy whose attachments you want to know.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lowercase letters or digits.
+	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -15543,13 +15002,13 @@ type MoveAccountInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lowercase letters or digits.
+	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
+	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
+	//    lower-case letters or digits.
 	//
 	// DestinationParentId is a required field
 	DestinationParentId *string `type:"string" required:"true"`
@@ -15560,13 +15019,13 @@ type MoveAccountInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lowercase letters or digits.
+	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
+	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
+	//    lower-case letters or digits.
 	//
 	// SourceParentId is a required field
 	SourceParentId *string `type:"string" required:"true"`
@@ -15636,7 +15095,7 @@ func (s MoveAccountOutput) GoString() string {
 // Contains details about an organization. An organization is a collection of
 // accounts that are centrally managed together using consolidated billing,
 // organized hierarchically with organizational units (OUs), and controlled
-// with policies.
+// with policies .
 type Organization struct {
 	_ struct{} `type:"structure"`
 
@@ -15759,8 +15218,8 @@ type OrganizationalUnit struct {
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for an organizational
 	// unit ID string requires "ou-" followed by from 4 to 32 lower-case letters
-	// or digits (the ID of the root that contains the OU). This string is followed
-	// by a second "-" dash and from 8 to 32 additional lower-case letters or digits.
+	// or digits (the ID of the root that contains the OU) followed by a second
+	// "-" dash and from 8 to 32 additional lower-case letters or digits.
 	Id *string `type:"string"`
 
 	// The friendly name of this OU.
@@ -15809,13 +15268,13 @@ type Parent struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root: A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root: a string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
-	//    * Organizational unit (OU): A string that begins with "ou-" followed by
+	//    * Organizational unit (OU): a string that begins with "ou-" followed by
 	//    from 4 to 32 lower-case letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lower-case letters or digits.
+	//    OU is in) followed by a second "-" dash and from 8 to 32 additional lower-case
+	//    letters or digits.
 	Id *string `type:"string"`
 
 	// The type of the parent entity.
@@ -15891,7 +15350,7 @@ type PolicySummary struct {
 	// in the AWS Organizations User Guide.
 	Arn *string `type:"string"`
 
-	// A Boolean value that indicates whether the specified policy is an AWS managed
+	// A boolean value that indicates whether the specified policy is an AWS managed
 	// policy. If true, then you can attach the policy to roots, OUs, or accounts,
 	// but you cannot edit it.
 	AwsManaged *bool `type:"boolean"`
@@ -15986,15 +15445,15 @@ type PolicyTargetSummary struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a target ID string
 	// requires one of the following:
 	//
-	//    * Root: A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root: a string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
-	//    * Account: A string that consists of exactly 12 digits.
+	//    * Account: a string that consists of exactly 12 digits.
 	//
-	//    * Organizational unit (OU): A string that begins with "ou-" followed by
+	//    * Organizational unit (OU): a string that begins with "ou-" followed by
 	//    from 4 to 32 lower-case letters or digits (the ID of the root that the
-	//    OU is in). This string is followed by a second "-" dash and from 8 to
-	//    32 additional lower-case letters or digits.
+	//    OU is in) followed by a second "-" dash and from 8 to 32 additional lower-case
+	//    letters or digits.
 	TargetId *string `type:"string"`
 
 	// The type of the policy target.
@@ -16040,10 +15499,9 @@ func (s *PolicyTargetSummary) SetType(v string) *PolicyTargetSummary {
 type PolicyTypeSummary struct {
 	_ struct{} `type:"structure"`
 
-	// The status of the policy type as it relates to the associated root. You can
-	// attach a policy of the specified type to a root or to an OU or account in
-	// that root. To do so, the policy must be available in the organization and
-	// enabled for that root.
+	// The status of the policy type as it relates to the associated root. To attach
+	// a policy of the specified type to a root or to an OU or account in that root,
+	// it must be available in the organization and enabled for that root.
 	Status *string `type:"string" enum:"PolicyTypeStatus"`
 
 	// The name of the policy type.
@@ -16417,9 +15875,9 @@ type UpdateOrganizationalUnitInput struct {
 	// the ID from the ListOrganizationalUnitsForParent operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for an organizational
-	// unit ID string requires "ou-" followed by from 4 to 32 lowercase letters
-	// or digits (the ID of the root that contains the OU). This string is followed
-	// by a second "-" dash and from 8 to 32 additional lowercase letters or digits.
+	// unit ID string requires "ou-" followed by from 4 to 32 lower-case letters
+	// or digits (the ID of the root that contains the OU) followed by a second
+	// "-" dash and from 8 to 32 additional lower-case letters or digits.
 	//
 	// OrganizationalUnitId is a required field
 	OrganizationalUnitId *string `type:"string" required:"true"`
@@ -16509,7 +15967,7 @@ type UpdatePolicyInput struct {
 	// The unique identifier (ID) of the policy that you want to update.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lowercase letters or digits.
+	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -16651,9 +16109,6 @@ const (
 	// ConstraintViolationExceptionReasonPolicyNumberLimitExceeded is a ConstraintViolationExceptionReason enum value
 	ConstraintViolationExceptionReasonPolicyNumberLimitExceeded = "POLICY_NUMBER_LIMIT_EXCEEDED"
 
-	// ConstraintViolationExceptionReasonPolicyContentLimitExceeded is a ConstraintViolationExceptionReason enum value
-	ConstraintViolationExceptionReasonPolicyContentLimitExceeded = "POLICY_CONTENT_LIMIT_EXCEEDED"
-
 	// ConstraintViolationExceptionReasonMaxPolicyTypeAttachmentLimitExceeded is a ConstraintViolationExceptionReason enum value
 	ConstraintViolationExceptionReasonMaxPolicyTypeAttachmentLimitExceeded = "MAX_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED"
 
@@ -16724,9 +16179,6 @@ const (
 
 	// CreateAccountFailureReasonInternalFailure is a CreateAccountFailureReason enum value
 	CreateAccountFailureReasonInternalFailure = "INTERNAL_FAILURE"
-
-	// CreateAccountFailureReasonGovcloudAccountAlreadyExists is a CreateAccountFailureReason enum value
-	CreateAccountFailureReasonGovcloudAccountAlreadyExists = "GOVCLOUD_ACCOUNT_ALREADY_EXISTS"
 )
 
 const (
@@ -16738,11 +16190,6 @@ const (
 
 	// CreateAccountStateFailed is a CreateAccountState enum value
 	CreateAccountStateFailed = "FAILED"
-)
-
-const (
-	// EffectivePolicyTypeTagPolicy is a EffectivePolicyType enum value
-	EffectivePolicyTypeTagPolicy = "TAG_POLICY"
 )
 
 const (
@@ -16849,9 +16296,6 @@ const (
 	// InvalidInputExceptionReasonInvalidEnum is a InvalidInputExceptionReason enum value
 	InvalidInputExceptionReasonInvalidEnum = "INVALID_ENUM"
 
-	// InvalidInputExceptionReasonInvalidEnumPolicyType is a InvalidInputExceptionReason enum value
-	InvalidInputExceptionReasonInvalidEnumPolicyType = "INVALID_ENUM_POLICY_TYPE"
-
 	// InvalidInputExceptionReasonInvalidListMember is a InvalidInputExceptionReason enum value
 	InvalidInputExceptionReasonInvalidListMember = "INVALID_LIST_MEMBER"
 
@@ -16899,9 +16343,6 @@ const (
 
 	// InvalidInputExceptionReasonInvalidSystemTagsParameter is a InvalidInputExceptionReason enum value
 	InvalidInputExceptionReasonInvalidSystemTagsParameter = "INVALID_SYSTEM_TAGS_PARAMETER"
-
-	// InvalidInputExceptionReasonTargetNotSupported is a InvalidInputExceptionReason enum value
-	InvalidInputExceptionReasonTargetNotSupported = "TARGET_NOT_SUPPORTED"
 )
 
 const (
@@ -16923,9 +16364,6 @@ const (
 const (
 	// PolicyTypeServiceControlPolicy is a PolicyType enum value
 	PolicyTypeServiceControlPolicy = "SERVICE_CONTROL_POLICY"
-
-	// PolicyTypeTagPolicy is a PolicyType enum value
-	PolicyTypeTagPolicy = "TAG_POLICY"
 )
 
 const (

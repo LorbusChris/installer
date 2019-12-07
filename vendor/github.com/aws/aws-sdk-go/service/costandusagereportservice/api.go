@@ -222,12 +222,10 @@ func (c *CostandUsageReportService) DescribeReportDefinitionsPagesWithContext(ct
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeReportDefinitionsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeReportDefinitionsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

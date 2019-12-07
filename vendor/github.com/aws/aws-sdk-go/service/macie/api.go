@@ -500,12 +500,10 @@ func (c *Macie) ListMemberAccountsPagesWithContext(ctx aws.Context, input *ListM
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListMemberAccountsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListMemberAccountsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -648,12 +646,10 @@ func (c *Macie) ListS3ResourcesPagesWithContext(ctx aws.Context, input *ListS3Re
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListS3ResourcesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListS3ResourcesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

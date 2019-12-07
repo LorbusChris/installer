@@ -59,8 +59,8 @@ func (c *CognitoIdentity) CreateIdentityPoolRequest(input *CreateIdentityPoolInp
 // CreateIdentityPool API operation for Amazon Cognito Identity.
 //
 // Creates a new identity pool. The identity pool is a store of user identity
-// information that is specific to your AWS account. The keys for SupportedLoginProviders
-// are as follows:
+// information that is specific to your AWS account. The limit on identity pools
+// is 60 per account. The keys for SupportedLoginProviders are as follows:
 //
 //    * Facebook: graph.facebook.com
 //
@@ -2163,11 +2163,6 @@ func (c *CognitoIdentity) UpdateIdentityPoolWithContext(ctx aws.Context, input *
 type CreateIdentityPoolInput struct {
 	_ struct{} `type:"structure"`
 
-	// Enables or disables the Basic (Classic) authentication flow. For more information,
-	// see Identity Pools (Federated Identities) Authentication Flow (https://docs.aws.amazon.com/cognito/latest/developerguide/authentication-flow.html)
-	// in the Amazon Cognito Developer Guide.
-	AllowClassicFlow *bool `type:"boolean"`
-
 	// TRUE if the identity pool supports unauthenticated logins.
 	//
 	// AllowUnauthenticatedIdentities is a required field
@@ -2246,12 +2241,6 @@ func (s *CreateIdentityPoolInput) Validate() error {
 		return invalidParams
 	}
 	return nil
-}
-
-// SetAllowClassicFlow sets the AllowClassicFlow field's value.
-func (s *CreateIdentityPoolInput) SetAllowClassicFlow(v bool) *CreateIdentityPoolInput {
-	s.AllowClassicFlow = &v
-	return s
 }
 
 // SetAllowUnauthenticatedIdentities sets the AllowUnauthenticatedIdentities field's value.
@@ -2889,9 +2878,6 @@ type GetOpenIdTokenForDeveloperIdentityInput struct {
 	// take care in setting the expiration time for a token, as there are significant
 	// security implications: an attacker could use a leaked token to access your
 	// AWS resources for the token's duration.
-	//
-	// Please provide for a small grace period, usually no more than 5 minutes,
-	// to account for clock skew.
 	TokenDuration *int64 `min:"1" type:"long"`
 }
 
@@ -3131,11 +3117,6 @@ func (s *IdentityDescription) SetLogins(v []*string) *IdentityDescription {
 type IdentityPool struct {
 	_ struct{} `type:"structure"`
 
-	// Enables or disables the Basic (Classic) authentication flow. For more information,
-	// see Identity Pools (Federated Identities) Authentication Flow (https://docs.aws.amazon.com/cognito/latest/developerguide/authentication-flow.html)
-	// in the Amazon Cognito Developer Guide.
-	AllowClassicFlow *bool `type:"boolean"`
-
 	// TRUE if the identity pool supports unauthenticated logins.
 	//
 	// AllowUnauthenticatedIdentities is a required field
@@ -3219,12 +3200,6 @@ func (s *IdentityPool) Validate() error {
 		return invalidParams
 	}
 	return nil
-}
-
-// SetAllowClassicFlow sets the AllowClassicFlow field's value.
-func (s *IdentityPool) SetAllowClassicFlow(v bool) *IdentityPool {
-	s.AllowClassicFlow = &v
-	return s
 }
 
 // SetAllowUnauthenticatedIdentities sets the AllowUnauthenticatedIdentities field's value.
@@ -4245,9 +4220,7 @@ type TagResourceInput struct {
 	ResourceArn *string `min:"20" type:"string" required:"true"`
 
 	// The tags to assign to the identity pool.
-	//
-	// Tags is a required field
-	Tags map[string]*string `type:"map" required:"true"`
+	Tags map[string]*string `type:"map"`
 }
 
 // String returns the string representation
@@ -4268,9 +4241,6 @@ func (s *TagResourceInput) Validate() error {
 	}
 	if s.ResourceArn != nil && len(*s.ResourceArn) < 20 {
 		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 20))
-	}
-	if s.Tags == nil {
-		invalidParams.Add(request.NewErrParamRequired("Tags"))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -4540,9 +4510,7 @@ type UntagResourceInput struct {
 	ResourceArn *string `min:"20" type:"string" required:"true"`
 
 	// The keys of the tags to remove from the user pool.
-	//
-	// TagKeys is a required field
-	TagKeys []*string `type:"list" required:"true"`
+	TagKeys []*string `type:"list"`
 }
 
 // String returns the string representation
@@ -4563,9 +4531,6 @@ func (s *UntagResourceInput) Validate() error {
 	}
 	if s.ResourceArn != nil && len(*s.ResourceArn) < 20 {
 		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 20))
-	}
-	if s.TagKeys == nil {
-		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
 	}
 
 	if invalidParams.Len() > 0 {

@@ -728,12 +728,10 @@ func (c *CloudHSMV2) DescribeBackupsPagesWithContext(ctx aws.Context, input *Des
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeBackupsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeBackupsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -883,12 +881,10 @@ func (c *CloudHSMV2) DescribeClustersPagesWithContext(ctx aws.Context, input *De
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*DescribeClustersOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeClustersOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1136,12 +1132,10 @@ func (c *CloudHSMV2) ListTagsPagesWithContext(ctx aws.Context, input *ListTagsIn
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListTagsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListTagsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

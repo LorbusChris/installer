@@ -19,7 +19,7 @@ require (
 	github.com/antchfx/xpath v1.1.2 // indirect
 	github.com/apparentlymart/go-cidr v1.0.1
 	github.com/awalterschulze/gographviz v0.0.0-20190522210029-fa59802746ab
-	github.com/aws/aws-sdk-go v1.25.48
+	github.com/aws/aws-sdk-go v1.25.47
 	github.com/bmatcuk/doublestar v1.2.1 // indirect
 	github.com/btubbs/datetime v0.1.1 // indirect
 	github.com/c4milo/gotoolkit v0.0.0-20190525173301-67483a18c17a // indirect
@@ -130,6 +130,7 @@ require (
 replace (
 	github.com/Azure/azure-sdk-for-go => github.com/hashicorp/azure-sdk-for-go v36.2.2-hashi+incompatible
 	github.com/Unknwon/com => github.com/unknwon/com v1.0.1
+	github.com/aws/aws-sdk-go => github.com/aws/aws-sdk-go v1.25.10
 	github.com/coreos/go-systemd => github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/coreos/ignition => github.com/coreos/ignition v0.28.0
 	github.com/dmacvicar/terraform-provider-libvirt => github.com/LorbusChris/terraform-provider-libvirt v0.6.1-0.20191206215801-043d2555e87f

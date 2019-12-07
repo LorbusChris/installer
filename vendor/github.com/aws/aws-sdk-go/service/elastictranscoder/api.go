@@ -743,12 +743,10 @@ func (c *ElasticTranscoder) ListJobsByPipelinePagesWithContext(ctx aws.Context, 
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListJobsByPipelineOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListJobsByPipelineOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -893,12 +891,10 @@ func (c *ElasticTranscoder) ListJobsByStatusPagesWithContext(ctx aws.Context, in
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListJobsByStatusOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListJobsByStatusOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1037,12 +1033,10 @@ func (c *ElasticTranscoder) ListPipelinesPagesWithContext(ctx aws.Context, input
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPipelinesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPipelinesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -1181,12 +1175,10 @@ func (c *ElasticTranscoder) ListPresetsPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPresetsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPresetsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 

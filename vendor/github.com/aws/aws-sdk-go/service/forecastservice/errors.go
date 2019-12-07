@@ -20,13 +20,14 @@ const (
 	// ErrCodeLimitExceededException for service response error code
 	// "LimitExceededException".
 	//
-	// The limit on the number of resources per account has been exceeded.
+	// The limit on the number of requests per second has been exceeded.
 	ErrCodeLimitExceededException = "LimitExceededException"
 
 	// ErrCodeResourceAlreadyExistsException for service response error code
 	// "ResourceAlreadyExistsException".
 	//
-	// There is already a resource with this name. Try again with a different name.
+	// There is already a resource with that Amazon Resource Name (ARN). Try again
+	// with a different ARN.
 	ErrCodeResourceAlreadyExistsException = "ResourceAlreadyExistsException"
 
 	// ErrCodeResourceInUseException for service response error code

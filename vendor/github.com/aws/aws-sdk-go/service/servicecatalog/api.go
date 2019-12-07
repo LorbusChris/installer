@@ -4466,12 +4466,10 @@ func (c *ServiceCatalog) ListAcceptedPortfolioSharesPagesWithContext(ctx aws.Con
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListAcceptedPortfolioSharesOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListAcceptedPortfolioSharesOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -4606,12 +4604,10 @@ func (c *ServiceCatalog) ListBudgetsForResourcePagesWithContext(ctx aws.Context,
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListBudgetsForResourceOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListBudgetsForResourceOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -4746,12 +4742,10 @@ func (c *ServiceCatalog) ListConstraintsForPortfolioPagesWithContext(ctx aws.Con
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListConstraintsForPortfolioOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListConstraintsForPortfolioOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -4888,12 +4882,10 @@ func (c *ServiceCatalog) ListLaunchPathsPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListLaunchPathsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListLaunchPathsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -5032,12 +5024,10 @@ func (c *ServiceCatalog) ListOrganizationPortfolioAccessPagesWithContext(ctx aws
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListOrganizationPortfolioAccessOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListOrganizationPortfolioAccessOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -5248,12 +5238,10 @@ func (c *ServiceCatalog) ListPortfoliosPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPortfoliosOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPortfoliosOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -5388,12 +5376,10 @@ func (c *ServiceCatalog) ListPortfoliosForProductPagesWithContext(ctx aws.Contex
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPortfoliosForProductOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPortfoliosForProductOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -5528,12 +5514,10 @@ func (c *ServiceCatalog) ListPrincipalsForPortfolioPagesWithContext(ctx aws.Cont
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListPrincipalsForPortfolioOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPrincipalsForPortfolioOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -5835,12 +5819,10 @@ func (c *ServiceCatalog) ListProvisioningArtifactsForServiceActionPagesWithConte
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListProvisioningArtifactsForServiceActionOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListProvisioningArtifactsForServiceActionOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -6059,12 +6041,10 @@ func (c *ServiceCatalog) ListResourcesForTagOptionPagesWithContext(ctx aws.Conte
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListResourcesForTagOptionOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListResourcesForTagOptionOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -6196,12 +6176,10 @@ func (c *ServiceCatalog) ListServiceActionsPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListServiceActionsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListServiceActionsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -6337,12 +6315,10 @@ func (c *ServiceCatalog) ListServiceActionsForProvisioningArtifactPagesWithConte
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListServiceActionsForProvisioningArtifactOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListServiceActionsForProvisioningArtifactOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -6563,12 +6539,10 @@ func (c *ServiceCatalog) ListTagOptionsPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*ListTagOptionsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListTagOptionsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -6956,12 +6930,10 @@ func (c *ServiceCatalog) SearchProductsPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*SearchProductsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*SearchProductsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -7096,12 +7068,10 @@ func (c *ServiceCatalog) SearchProductsAsAdminPagesWithContext(ctx aws.Context, 
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*SearchProductsAsAdminOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*SearchProductsAsAdminOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
@@ -7233,12 +7203,10 @@ func (c *ServiceCatalog) SearchProvisionedProductsPagesWithContext(ctx aws.Conte
 		},
 	}
 
-	for p.Next() {
-		if !fn(p.Page().(*SearchProvisionedProductsOutput), !p.HasNextPage()) {
-			break
-		}
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*SearchProvisionedProductsOutput), !p.HasNextPage())
 	}
-
 	return p.Err()
 }
 
