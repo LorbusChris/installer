@@ -2,9 +2,10 @@ package ignition
 
 import (
 	"encoding/json"
-	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/pkg/errors"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/coreos/ignition/config/v2_1/types"
 )
@@ -101,7 +102,7 @@ func dataSourceConfig() *schema.Resource {
 }
 
 func resourceIgnitionFileRead(d *schema.ResourceData, meta interface{}) error {
-	rendered, err := renderConfig(d, globalCache)
+	rendered, err := renderConfig(d)
 	if err != nil {
 		return err
 	}
@@ -115,7 +116,7 @@ func resourceIgnitionFileRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceIgnitionFileExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	rendered, err := renderConfig(d, globalCache)
+	rendered, err := renderConfig(d)
 	if err != nil {
 		return false, err
 	}
@@ -123,8 +124,8 @@ func resourceIgnitionFileExists(d *schema.ResourceData, meta interface{}) (bool,
 	return hash(rendered) == d.Id(), nil
 }
 
-func renderConfig(d *schema.ResourceData, c *cache) (string, error) {
-	i, err := buildConfig(d, c)
+func renderConfig(d *schema.ResourceData) (string, error) {
+	i, err := buildConfig(d)
 	if err != nil {
 		return "", err
 	}
@@ -138,7 +139,7 @@ func renderConfig(d *schema.ResourceData, c *cache) (string, error) {
 	return string(bytes), nil
 }
 
-func buildConfig(d *schema.ResourceData, c *cache) (*types.Config, error) {
+func buildConfig(d *schema.ResourceData) (*types.Config, error) {
 	var err error
 	config := &types.Config{}
 	config.Ignition, err = buildIgnition(d)
@@ -146,22 +147,22 @@ func buildConfig(d *schema.ResourceData, c *cache) (*types.Config, error) {
 		return nil, err
 	}
 
-	config.Storage, err = buildStorage(d, c)
+	config.Storage, err = buildStorage(d)
 	if err != nil {
 		return nil, err
 	}
 
-	config.Systemd, err = buildSystemd(d, c)
+	config.Systemd, err = buildSystemd(d)
 	if err != nil {
 		return nil, err
 	}
 
-	config.Networkd, err = buildNetworkd(d, c)
+	config.Networkd, err = buildNetworkd(d)
 	if err != nil {
 		return nil, err
 	}
 
-	config.Passwd, err = buildPasswd(d, c)
+	config.Passwd, err = buildPasswd(d)
 	if err != nil {
 		return nil, err
 	}
@@ -210,151 +211,167 @@ func buildConfigReference(raw map[string]interface{}) (*types.ConfigReference, e
 	return r, nil
 }
 
-func buildStorage(d *schema.ResourceData, c *cache) (types.Storage, error) {
+func buildStorage(d *schema.ResourceData) (types.Storage, error) {
 	storage := types.Storage{}
 
-	for _, id := range d.Get("disks").([]interface{}) {
-		if id == nil {
+	for _, disk := range d.Get("disks").([]interface{}) {
+		if disk == nil {
 			continue
 		}
-		d, err := c.getDisk(id.(string))
+
+		d := types.Disk{}
+		err := json.Unmarshal([]byte(disk.(string)), &d)
 		if err != nil {
-			return storage, fmt.Errorf("invalid disk %q, failed to get disk id: %v", id, err)
+			return storage, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		storage.Disks = append(storage.Disks, *d)
+		storage.Disks = append(storage.Disks, d)
 	}
 
-	for _, id := range d.Get("arrays").([]interface{}) {
-		if id == nil {
+	for _, array := range d.Get("arrays").([]interface{}) {
+		if array == nil {
 			continue
 		}
-		a, err := c.getRaid(id.(string))
+
+		a := types.Raid{}
+		err := json.Unmarshal([]byte(array.(string)), &a)
 		if err != nil {
-			return storage, fmt.Errorf("invalid raid %q, failed to get disk id: %v", id, err)
+			return storage, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		storage.Raid = append(storage.Raid, *a)
+		storage.Raid = append(storage.Raid, a)
 	}
 
-	for _, id := range d.Get("filesystems").([]interface{}) {
-		if id == nil {
+	for _, fs := range d.Get("filesystems").([]interface{}) {
+		if fs == nil {
 			continue
 		}
-		f, err := c.getFilesystem(id.(string))
+
+		f := types.Filesystem{}
+		err := json.Unmarshal([]byte(fs.(string)), &f)
 		if err != nil {
-			return storage, fmt.Errorf("invalid filesystem %q, failed to get filesystem id: %v", id, err)
+			return storage, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		storage.Filesystems = append(storage.Filesystems, *f)
+		storage.Filesystems = append(storage.Filesystems, f)
 	}
 
-	for _, id := range d.Get("files").([]interface{}) {
-		if id == nil {
+	for _, file := range d.Get("files").([]interface{}) {
+		if file == nil {
 			continue
 		}
-		f, err := c.getFile(id.(string))
+
+		f := types.File{}
+		err := json.Unmarshal([]byte(file.(string)), &f)
 		if err != nil {
-			return storage, fmt.Errorf("invalid file %q, failed to get file id: %v", id, err)
+			return storage, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		storage.Files = append(storage.Files, *f)
+		storage.Files = append(storage.Files, f)
 	}
 
-	for _, id := range d.Get("directories").([]interface{}) {
-		if id == nil {
+	for _, dir := range d.Get("directories").([]interface{}) {
+		if dir == nil {
 			continue
 		}
-		f, err := c.getDirectory(id.(string))
+
+		f := types.Directory{}
+		err := json.Unmarshal([]byte(dir.(string)), &f)
 		if err != nil {
-			return storage, fmt.Errorf("invalid file %q, failed to get directory id: %v", id, err)
+			return storage, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		storage.Directories = append(storage.Directories, *f)
+		storage.Directories = append(storage.Directories, f)
 	}
 
-	for _, id := range d.Get("links").([]interface{}) {
-		if id == nil {
+	for _, link := range d.Get("links").([]interface{}) {
+		if link == nil {
 			continue
 		}
-		f, err := c.getLink(id.(string))
+
+		f := types.Link{}
+		err := json.Unmarshal([]byte(link.(string)), &f)
 		if err != nil {
-			return storage, fmt.Errorf("invalid file %q, failed to get link id: %v", id, err)
+			return storage, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		storage.Links = append(storage.Links, *f)
+		storage.Links = append(storage.Links, f)
 	}
 
 	return storage, nil
 
 }
 
-func buildSystemd(d *schema.ResourceData, c *cache) (types.Systemd, error) {
+func buildSystemd(d *schema.ResourceData) (types.Systemd, error) {
 	systemd := types.Systemd{}
 
-	for _, id := range d.Get("systemd").([]interface{}) {
-		if id == nil {
+	for _, unit := range d.Get("systemd").([]interface{}) {
+		if unit == nil {
 			continue
 		}
 
-		u, err := c.getSystemdUnit(id.(string))
+		u := types.Unit{}
+		err := json.Unmarshal([]byte(unit.(string)), &u)
 		if err != nil {
-			return systemd, fmt.Errorf("invalid systemd unit %q, failed to get systemd unit id: %v", id, err)
+			return systemd, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		systemd.Units = append(systemd.Units, *u)
+		systemd.Units = append(systemd.Units, u)
 	}
 
 	return systemd, nil
 
 }
 
-func buildNetworkd(d *schema.ResourceData, c *cache) (types.Networkd, error) {
+func buildNetworkd(d *schema.ResourceData) (types.Networkd, error) {
 	networkd := types.Networkd{}
 
-	for _, id := range d.Get("networkd").([]interface{}) {
-		if id == nil {
+	for _, unit := range d.Get("networkd").([]interface{}) {
+		if unit == nil {
 			continue
 		}
 
-		u, err := c.getNetworkdunit(id.(string))
+		u := types.Networkdunit{}
+		err := json.Unmarshal([]byte(unit.(string)), &u)
 		if err != nil {
-			return networkd, fmt.Errorf("invalid networkd unit %q, failed to get networkd unit id: %v", id, err)
+			return networkd, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		networkd.Units = append(networkd.Units, *u)
+		networkd.Units = append(networkd.Units, u)
 	}
 
 	return networkd, nil
 }
 
-func buildPasswd(d *schema.ResourceData, c *cache) (types.Passwd, error) {
+func buildPasswd(d *schema.ResourceData) (types.Passwd, error) {
 	passwd := types.Passwd{}
 
-	for _, id := range d.Get("users").([]interface{}) {
-		if id == nil {
+	for _, user := range d.Get("users").([]interface{}) {
+		if user == nil {
 			continue
 		}
 
-		u, err := c.getUser(id.(string))
+		u := types.PasswdUser{}
+		err := json.Unmarshal([]byte(user.(string)), &u)
 		if err != nil {
-			return passwd, fmt.Errorf("invalid user %q, failed to get user id: %v", id, err)
+			return passwd, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		passwd.Users = append(passwd.Users, *u)
+		passwd.Users = append(passwd.Users, u)
 	}
 
-	for _, id := range d.Get("groups").([]interface{}) {
-		if id == nil {
+	for _, group := range d.Get("groups").([]interface{}) {
+		if group == nil {
 			continue
 		}
 
-		g, err := c.getGroup(id.(string))
+		g := types.PasswdGroup{}
+		err := json.Unmarshal([]byte(group.(string)), &g)
 		if err != nil {
-			return passwd, fmt.Errorf("invalid group %q, failed to get group id: %v", id, err)
+			return passwd, errors.Wrap(err, "No valid JSON found, make sure you're using .rendered and not .id")
 		}
 
-		passwd.Groups = append(passwd.Groups, *g)
+		passwd.Groups = append(passwd.Groups, g)
 	}
 
 	return passwd, nil

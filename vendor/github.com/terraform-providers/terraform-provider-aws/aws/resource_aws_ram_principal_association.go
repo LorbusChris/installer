@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceAwsRamPrincipalAssociation() *schema.Resource {
@@ -37,10 +36,6 @@ func resourceAwsRamPrincipalAssociation() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.Any(
-					validateAwsAccountId,
-					validateArn,
-				),
 			},
 		},
 	}

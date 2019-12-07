@@ -22,10 +22,6 @@ func dataSourceAwsDxGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"owner_account_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -65,7 +61,6 @@ func dataSourceAwsDxGatewayRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.SetId(aws.StringValue(gateway.DirectConnectGatewayId))
 	d.Set("amazon_side_asn", strconv.FormatInt(aws.Int64Value(gateway.AmazonSideAsn), 10))
-	d.Set("owner_account_id", aws.StringValue(gateway.OwnerAccount))
 
 	return nil
 }

@@ -88,17 +88,13 @@ func resourceAwsDxPrivateVirtualInterface() *schema.Resource {
 				Type:         schema.TypeInt,
 				Default:      1500,
 				Optional:     true,
-				ValidateFunc: validation.IntInSlice([]int{1500, 9001}),
+				ValidateFunc: validateIntegerInSlice([]int{1500, 9001}),
 			},
 			"jumbo_frame_capable": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
 			"tags": tagsSchema(),
-			"aws_device": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -193,7 +189,6 @@ func resourceAwsDxPrivateVirtualInterfaceRead(d *schema.ResourceData, meta inter
 	d.Set("dx_gateway_id", vif.DirectConnectGatewayId)
 	d.Set("mtu", vif.Mtu)
 	d.Set("jumbo_frame_capable", vif.JumboFrameCapable)
-	d.Set("aws_device", vif.AwsDeviceV2)
 	err1 := getTagsDX(conn, d, d.Get("arn").(string))
 	return err1
 }

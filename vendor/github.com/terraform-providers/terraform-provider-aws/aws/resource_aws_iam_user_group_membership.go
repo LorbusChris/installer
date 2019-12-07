@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/service/iam"
 
@@ -17,9 +16,6 @@ func resourceAwsIamUserGroupMembership() *schema.Resource {
 		Read:   resourceAwsIamUserGroupMembershipRead,
 		Update: resourceAwsIamUserGroupMembershipUpdate,
 		Delete: resourceAwsIamUserGroupMembershipDelete,
-		Importer: &schema.ResourceImporter{
-			State: resourceAwsIamUserGroupMembershipImport,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"user": {
@@ -165,20 +161,4 @@ func addUserToGroups(conn *iam.IAM, user string, groups []*string) error {
 	}
 
 	return nil
-}
-
-func resourceAwsIamUserGroupMembershipImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	idParts := strings.Split(d.Id(), "/")
-	if len(idParts) < 2 {
-		return nil, fmt.Errorf("unexpected format of ID (%q), expected <user-name>/<group-name1>/...", d.Id())
-	}
-
-	userName := idParts[0]
-	groupList := idParts[1:]
-
-	d.Set("user", userName)
-	d.Set("groups", groupList)
-	d.SetId(resource.UniqueId())
-
-	return []*schema.ResourceData{d}, nil
 }

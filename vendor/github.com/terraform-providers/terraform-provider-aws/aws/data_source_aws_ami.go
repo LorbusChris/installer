@@ -41,12 +41,9 @@ func dataSourceAwsAmi() *schema.Resource {
 			},
 			"owners": {
 				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validation.NoZeroValues,
-				},
+				Optional: true,
+				ForceNew: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			// Computed values.
 			"architecture": {
@@ -185,15 +182,49 @@ func dataSourceAwsAmi() *schema.Resource {
 func dataSourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	params := &ec2.DescribeImagesInput{
-		Owners: expandStringList(d.Get("owners").([]interface{})),
+	executableUsers, executableUsersOk := d.GetOk("executable_users")
+	filters, filtersOk := d.GetOk("filter")
+	nameRegex, nameRegexOk := d.GetOk("name_regex")
+	owners, ownersOk := d.GetOk("owners")
+
+	if !executableUsersOk && !filtersOk && !nameRegexOk && !ownersOk {
+		return fmt.Errorf("One of executable_users, filters, name_regex, or owners must be assigned")
 	}
 
-	if v, ok := d.GetOk("executable_users"); ok {
-		params.ExecutableUsers = expandStringList(v.([]interface{}))
+	params := &ec2.DescribeImagesInput{}
+	if executableUsersOk {
+		params.ExecutableUsers = expandStringList(executableUsers.([]interface{}))
 	}
-	if v, ok := d.GetOk("filter"); ok {
-		params.Filters = buildAwsDataSourceFilters(v.(*schema.Set))
+	if filtersOk {
+		params.Filters = buildAwsDataSourceFilters(filters.(*schema.Set))
+	}
+	if ownersOk {
+		o := expandStringList(owners.([]interface{}))
+
+		if len(o) > 0 {
+			params.Owners = o
+		}
+	}
+
+	// Deprecated: pre-2.0.0 warning logging
+	if !ownersOk {
+		log.Print("[WARN] The \"owners\" argument will become required in the next major version.")
+		log.Print("[WARN] Documentation can be found at: https://www.terraform.io/docs/providers/aws/d/ami.html#owners")
+
+		missingOwnerFilter := true
+
+		if filtersOk {
+			for _, filter := range params.Filters {
+				if aws.StringValue(filter.Name) == "owner-alias" || aws.StringValue(filter.Name) == "owner-id" {
+					missingOwnerFilter = false
+					break
+				}
+			}
+		}
+
+		if missingOwnerFilter {
+			log.Print("[WARN] Potential security issue: missing \"owners\" filtering for AMI. Check AMI to ensure it came from trusted source.")
+		}
 	}
 
 	log.Printf("[DEBUG] Reading AMI: %s", params)
@@ -203,7 +234,7 @@ func dataSourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	var filteredImages []*ec2.Image
-	if nameRegex, ok := d.GetOk("name_regex"); ok {
+	if nameRegexOk {
 		r := regexp.MustCompile(nameRegex.(string))
 		for _, image := range resp.Images {
 			// Check for a very rare case where the response would include no

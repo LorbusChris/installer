@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -20,15 +19,6 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 		Read:   resourceAwsKinesisAnalyticsApplicationRead,
 		Update: resourceAwsKinesisAnalyticsApplicationUpdate,
 		Delete: resourceAwsKinesisAnalyticsApplicationDelete,
-
-		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				arns := strings.Split(d.Id(), ":")
-				name := strings.Replace(arns[len(arns)-1], "application/", "", 1)
-				d.Set("name", name)
-				return []*schema.ResourceData{d}, nil
-			},
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

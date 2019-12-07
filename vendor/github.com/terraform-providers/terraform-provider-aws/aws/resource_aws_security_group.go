@@ -71,10 +71,9 @@ func resourceAwsSecurityGroup() *schema.Resource {
 			},
 
 			"ingress": {
-				Type:       schema.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from_port": {
@@ -141,10 +140,9 @@ func resourceAwsSecurityGroup() *schema.Resource {
 			},
 
 			"egress": {
-				Type:       schema.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from_port": {
@@ -1337,9 +1335,9 @@ func idHash(rType, protocol string, toPort, fromPort int64, self bool) string {
 
 // protocolStateFunc ensures we only store a string in any protocol field
 func protocolStateFunc(v interface{}) string {
-	switch v := v.(type) {
+	switch v.(type) {
 	case string:
-		p := protocolForValue(v)
+		p := protocolForValue(v.(string))
 		return p
 	default:
 		log.Printf("[WARN] Non String value given for Protocol: %#v", v)

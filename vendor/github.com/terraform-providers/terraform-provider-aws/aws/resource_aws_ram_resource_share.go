@@ -29,11 +29,6 @@ func resourceAwsRamResourceShare() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -118,7 +113,6 @@ func resourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	d.Set("arn", resourceShare.ResourceShareArn)
 	d.Set("name", resourceShare.Name)
 	d.Set("allow_external_principals", resourceShare.AllowExternalPrincipals)
 

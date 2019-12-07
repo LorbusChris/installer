@@ -11,10 +11,10 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/apparentlymart/go-cidr v1.0.1
 	github.com/awalterschulze/gographviz v0.0.0-20170410065617-c84395e536e1
-	github.com/aws/aws-sdk-go v1.25.3
+	github.com/aws/aws-sdk-go v1.25.47
 	github.com/containers/image v3.0.2+incompatible
-	github.com/coreos/ignition v0.28.0
-	github.com/dmacvicar/terraform-provider-libvirt v0.6.0
+	github.com/coreos/ignition v0.33.0
+	github.com/dmacvicar/terraform-provider-libvirt v0.0.0
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/mock v1.3.1
@@ -22,6 +22,7 @@ require (
 	github.com/gophercloud/utils v0.0.0-20191020172814-bd86af96d544
 	github.com/hashicorp/go-azure-helpers v0.10.0
 	github.com/hashicorp/go-plugin v1.0.1
+	github.com/hashicorp/hcl2 v0.0.0-20190821123243-0c888d1241f6 // indirect
 	github.com/hashicorp/logutils v1.0.0
 	github.com/hashicorp/terraform v0.12.17
 	github.com/hashicorp/terraform-plugin-sdk v1.4.0
@@ -32,7 +33,7 @@ require (
 	github.com/mitchellh/cli v1.0.0
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
-	github.com/openshift-metal3/terraform-provider-ironic v0.1.8
+	github.com/openshift-metal3/terraform-provider-ironic v0.0.0
 	github.com/openshift/api v3.9.1-0.20191014195513-c9253efc14f4+incompatible
 	github.com/openshift/client-go v0.0.0-20191001081553-3b0e988f8cb0
 	github.com/openshift/cloud-credential-operator v0.0.0-20190905120421-44ed18ef8496
@@ -50,25 +51,22 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/stoewer/go-strcase v1.1.0 // indirect
 	github.com/stretchr/testify v1.4.0
-	github.com/terraform-providers/terraform-provider-aws v0.0.0-00010101000000-000000000000
+	github.com/terraform-providers/terraform-provider-aws v1.60.0
 	github.com/terraform-providers/terraform-provider-azurerm v1.37.0
 	github.com/terraform-providers/terraform-provider-google v0.0.0-20191204001720-5937ed8454f5
-	github.com/terraform-providers/terraform-provider-ignition v1.1.0
+	github.com/terraform-providers/terraform-provider-ignition v0.0.0
 	github.com/terraform-providers/terraform-provider-local v1.4.0
 	github.com/terraform-providers/terraform-provider-openstack v1.24.0
 	github.com/terraform-providers/terraform-provider-random v0.0.0-20190925210718-83518d96ae4f
 	github.com/vincent-petithory/dataurl v0.0.0-20160330182126-9a301d65acbb
 	golang.org/x/crypto v0.0.0-20191202143827-86a70503ff7e
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f
-	golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a // indirect
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sys v0.0.0-20191128015809-6d18c012aee9
-	golang.org/x/tools v0.0.0-20191204011308-9611592c72f6 // indirect
+	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
+	golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
-	google.golang.org/api v0.13.0
+	google.golang.org/api v0.14.0
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	gopkg.in/ini.v1 v1.42.0
-	gopkg.in/yaml.v2 v2.2.7 // indirect
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
@@ -82,6 +80,7 @@ require (
 replace (
 	github.com/Azure/azure-sdk-for-go => github.com/hashicorp/azure-sdk-for-go v36.2.2-hashi+incompatible
 	github.com/coreos/ignition => github.com/coreos/ignition v0.28.0
+	github.com/dmacvicar/terraform-provider-libvirt => github.com/LorbusChris/terraform-provider-libvirt v0.6.1-0.20191206215801-043d2555e87f
 	github.com/go-critic/go-critic v0.0.0-20181204210945-ee9bf5809ead => github.com/go-critic/go-critic v0.3.5-0.20190526074819-1df300866540
 	github.com/go-log/log => github.com/go-log/log v0.1.1-0.20181211034820-a514cf01a3eb
 	github.com/golangci/errcheck v0.0.0-20181003203344-ef45e06d44b6 => github.com/golangci/errcheck v0.0.0-20181223084120-ef45e06d44b6
@@ -90,10 +89,9 @@ replace (
 	github.com/golangci/gosec v0.0.0-20180901114220-66fb7fc33547 => github.com/golangci/gosec v0.0.0-20190211064107-66fb7fc33547
 	github.com/metal3-io/baremetal-operator => github.com/openshift/baremetal-operator v0.0.0-20191017022404-1f983453b8d3
 	github.com/metal3-io/cluster-api-provider-baremetal => github.com/openshift/cluster-api-provider-baremetal v0.0.0-20190821174549-a2a477909c1d
-	github.com/terraform-providers/terraform-provider-aws => github.com/terraform-providers/terraform-provider-aws v0.0.0-20190510001811-4b894dbf13f6
-	github.com/terraform-providers/terraform-provider-ignition => github.com/LorbusChris/terraform-provider-ignition v1.0.2-0.20191203224725-42fde74592ae
-	golang.org/x/tools v0.0.0-20190314010720-f0bfdbff1f9c => golang.org/x/tools v0.0.0-20191204011308-9611592c72f6
-	golang.org/x/tools v0.0.0-20191002234911-9ade4c73f2af => golang.org/x/tools v0.0.0-20191204011308-9611592c72f6
+	github.com/openshift-metal3/terraform-provider-ironic => github.com/LorbusChris/terraform-provider-ironic v0.1.9-0.20191206181954-e83f27107627
+	github.com/terraform-providers/terraform-provider-ignition => github.com/LorbusChris/terraform-provider-ignition v1.0.2-0.20191206045501-a97472b5f449
+	golang.org/x/tools => golang.org/x/tools v0.0.0-20191112202413-08e24063958e
 	k8s.io/api => k8s.io/api v0.0.0-20190918155943-95b840bb6a1f
 	k8s.io/apiextensions-apiserver => github.com/openshift/kubernetes-apiextensions-apiserver v0.0.0-20190918161926-8f644eb6e783
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
@@ -120,5 +118,4 @@ replace (
 	sigs.k8s.io/cluster-api-provider-aws => github.com/openshift/cluster-api-provider-aws v0.2.1-0.20191129101643-987ca1c365a0
 	sigs.k8s.io/cluster-api-provider-azure => github.com/openshift/cluster-api-provider-azure v0.1.0-alpha.3.0.20191129104835-925b15bc2235
 	sigs.k8s.io/cluster-api-provider-openstack => github.com/openshift/cluster-api-provider-openstack v0.0.0-20191030154608-c14315ec7102
-
 )

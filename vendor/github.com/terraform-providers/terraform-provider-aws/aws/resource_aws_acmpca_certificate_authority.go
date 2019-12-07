@@ -19,17 +19,11 @@ func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 		Update: resourceAwsAcmpcaCertificateAuthorityUpdate,
 		Delete: resourceAwsAcmpcaCertificateAuthorityDelete,
 		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				d.Set("permanent_deletion_time_in_days", 30)
-
-				return []*schema.ResourceData{d}, nil
-			},
+			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 		},
-		MigrateState:  resourceAwsAcmpcaCertificateAuthorityMigrateState,
-		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"arn": {
@@ -245,12 +239,6 @@ func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"permanent_deletion_time_in_days": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      30,
-				ValidateFunc: validation.IntBetween(7, 30),
-			},
 			"tags": tagsSchema(),
 			"type": {
 				Type:     schema.TypeString,
@@ -270,7 +258,6 @@ func resourceAwsAcmpcaCertificateAuthorityCreate(d *schema.ResourceData, meta in
 	input := &acmpca.CreateCertificateAuthorityInput{
 		CertificateAuthorityConfiguration: expandAcmpcaCertificateAuthorityConfiguration(d.Get("certificate_authority_configuration").([]interface{})),
 		CertificateAuthorityType:          aws.String(d.Get("type").(string)),
-		IdempotencyToken:                  aws.String(resource.UniqueId()),
 		RevocationConfiguration:           expandAcmpcaRevocationConfiguration(d.Get("revocation_configuration").([]interface{})),
 	}
 
@@ -412,9 +399,7 @@ func resourceAwsAcmpcaCertificateAuthorityRead(d *schema.ResourceData, meta inte
 			d.SetId("")
 			return nil
 		}
-		if !isAWSErr(err, acmpca.ErrCodeInvalidStateException, "") {
-			return fmt.Errorf("error reading ACMPCA Certificate Authority Certificate Signing Request: %s", err)
-		}
+		return fmt.Errorf("error reading ACMPCA Certificate Authority Certificate Signing Request: %s", err)
 	}
 
 	d.Set("certificate_signing_request", "")
@@ -499,10 +484,6 @@ func resourceAwsAcmpcaCertificateAuthorityDelete(d *schema.ResourceData, meta in
 
 	input := &acmpca.DeleteCertificateAuthorityInput{
 		CertificateAuthorityArn: aws.String(d.Id()),
-	}
-
-	if v, exists := d.GetOk("permanent_deletion_time_in_days"); exists {
-		input.PermanentDeletionTimeInDays = aws.Int64(int64(v.(int)))
 	}
 
 	log.Printf("[DEBUG] Deleting ACMPCA Certificate Authority: %s", input)

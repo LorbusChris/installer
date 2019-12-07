@@ -239,9 +239,9 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 							StateFunc: func(v interface{}) string {
-								switch v := v.(type) {
+								switch v.(type) {
 								case string:
-									return userDataHashSum(v)
+									return userDataHashSum(v.(string))
 								default:
 									return ""
 								}
@@ -291,16 +291,11 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 				Default:  1,
 				ForceNew: true,
 			},
-			// Provided constants do not have the correct casing so going with hard-coded values.
 			"excess_capacity_termination_policy": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "Default",
 				ForceNew: false,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Default",
-					"NoTermination",
-				}, false),
 			},
 			"instance_interruption_behaviour": {
 				Type:     schema.TypeString,
@@ -1156,8 +1151,9 @@ func resourceAwsSpotFleetRequestUpdate(d *schema.ResourceData, meta interface{})
 		req.ExcessCapacityTerminationPolicy = aws.String(val.(string))
 	}
 
-	if _, err := conn.ModifySpotFleetRequest(req); err != nil {
-		return fmt.Errorf("error updating spot request (%s): %s", d.Id(), err)
+	resp, err := conn.ModifySpotFleetRequest(req)
+	if err == nil && aws.BoolValue(resp.Return) {
+		// TODO: rollback to old values?
 	}
 
 	return nil
@@ -1191,50 +1187,24 @@ func deleteSpotFleetRequest(spotFleetRequestID string, terminateInstances bool, 
 		return nil
 	}
 
-	activeInstances := func(fleetRequestID string) (int, error) {
+	return resource.Retry(timeout, func() *resource.RetryError {
 		resp, err := conn.DescribeSpotFleetInstances(&ec2.DescribeSpotFleetInstancesInput{
-			SpotFleetRequestId: aws.String(fleetRequestID),
+			SpotFleetRequestId: aws.String(spotFleetRequestID),
 		})
-
-		if err != nil || resp == nil {
-			return 0, fmt.Errorf("error reading Spot Fleet Instances (%s): %s", spotFleetRequestID, err)
-		}
-
-		return len(resp.ActiveInstances), nil
-	}
-
-	err = resource.Retry(timeout, func() *resource.RetryError {
-		n, err := activeInstances(spotFleetRequestID)
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
 
-		if n > 0 {
-			log.Printf("[DEBUG] Active instance count in Spot Fleet Request (%s): %d", spotFleetRequestID, n)
-			return resource.RetryableError(fmt.Errorf("fleet still has (%d) running instances", n))
+		if len(resp.ActiveInstances) == 0 {
+			log.Printf("[DEBUG] Active instance count is 0 for Spot Fleet Request (%s), removing", spotFleetRequestID)
+			return nil
 		}
 
-		log.Printf("[DEBUG] Active instance count is 0 for Spot Fleet Request (%s), removing", spotFleetRequestID)
-		return nil
+		log.Printf("[DEBUG] Active instance count in Spot Fleet Request (%s): %d", spotFleetRequestID, len(resp.ActiveInstances))
+
+		return resource.RetryableError(
+			fmt.Errorf("fleet still has (%d) running instances", len(resp.ActiveInstances)))
 	})
-
-	if isResourceTimeoutError(err) {
-		n, err := activeInstances(spotFleetRequestID)
-		if err != nil {
-			return err
-		}
-
-		if n > 0 {
-			log.Printf("[DEBUG] Active instance count in Spot Fleet Request (%s): %d", spotFleetRequestID, n)
-			return fmt.Errorf("fleet still has (%d) running instances", n)
-		}
-	}
-
-	if err != nil {
-		return fmt.Errorf("error reading Spot Fleet Instances (%s): %s", spotFleetRequestID, err)
-	}
-
-	return nil
 }
 
 func hashEphemeralBlockDevice(v interface{}) int {

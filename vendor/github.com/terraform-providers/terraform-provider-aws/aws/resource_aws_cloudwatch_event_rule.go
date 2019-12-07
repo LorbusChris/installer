@@ -73,7 +73,6 @@ func resourceAwsCloudWatchEventRule() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
 		},
 	}
 }
@@ -122,10 +121,6 @@ func resourceAwsCloudWatchEventRuleCreate(d *schema.ResourceData, meta interface
 
 	log.Printf("[INFO] CloudWatch Event Rule %q created", *out.RuleArn)
 
-	if err := setTagsCloudWatchEvents(conn, d, aws.StringValue(out.RuleArn)); err != nil {
-		return fmt.Errorf("Error creating tags for %s: %s", d.Id(), err)
-	}
-
 	return resourceAwsCloudWatchEventRuleUpdate(d, meta)
 }
 
@@ -168,9 +163,7 @@ func resourceAwsCloudWatchEventRuleRead(d *schema.ResourceData, meta interface{}
 	}
 	log.Printf("[DEBUG] Setting boolean state: %t", boolState)
 	d.Set("is_enabled", boolState)
-	if err := saveTagsCloudWatchEvents(conn, d, aws.StringValue(out.Arn)); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
+
 	return nil
 }
 
@@ -222,12 +215,6 @@ func resourceAwsCloudWatchEventRuleUpdate(d *schema.ResourceData, meta interface
 			return err
 		}
 		log.Printf("[DEBUG] CloudWatch Event Rule (%q) disabled", d.Id())
-	}
-
-	if d.HasChange("tags") {
-		if err := setTagsCloudWatchEvents(conn, d, d.Get("arn").(string)); err != nil {
-			return fmt.Errorf("Error updating tags for %s: %s", d.Id(), err)
-		}
 	}
 
 	return resourceAwsCloudWatchEventRuleRead(d, meta)

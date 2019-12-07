@@ -1,4 +1,4 @@
-// Copyright 2015-2019 Brett Vickers.
+// Copyright 2015 Brett Vickers.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -13,7 +13,6 @@ import (
 	"errors"
 	"io"
 	"os"
-	"sort"
 	"strings"
 )
 
@@ -34,19 +33,11 @@ type ReadSettings struct {
 	// Permissive allows input containing common mistakes such as missing tags
 	// or attribute values. Default: false.
 	Permissive bool
-
-	// Entity to be passed to standard xml.Decoder. Default: nil.
-	Entity map[string]string
 }
 
 // newReadSettings creates a default ReadSettings record.
 func newReadSettings() ReadSettings {
-	return ReadSettings{
-		CharsetReader: func(label string, input io.Reader) (io.Reader, error) {
-			return input, nil
-		},
-		Permissive: false,
-	}
+	return ReadSettings{}
 }
 
 // WriteSettings allow for changing the serialization behavior of the WriteTo*
@@ -65,11 +56,6 @@ type WriteSettings struct {
 	// attribute value characters &, < and ". If false, XML character
 	// references are also produced for > and '. Default: false.
 	CanonicalAttrVal bool
-
-	// When outputting indented XML, use a carriage return and linefeed
-	// ("\r\n") as a new-line delimiter instead of just a linefeed ("\n").
-	// This is useful on Windows-based systems.
-	UseCRLF bool
 }
 
 // newWriteSettings creates a default WriteSettings record.
@@ -78,7 +64,6 @@ func newWriteSettings() WriteSettings {
 		CanonicalEndTags: false,
 		CanonicalText:    false,
 		CanonicalAttrVal: false,
-		UseCRLF:          false,
 	}
 }
 
@@ -86,10 +71,8 @@ func newWriteSettings() WriteSettings {
 // Comment, Directive, or ProcInst.
 type Token interface {
 	Parent() *Element
-	Index() int
 	dup(parent *Element) Token
 	setParent(parent *Element)
-	setIndex(index int)
 	writeTo(w *bufio.Writer, s *WriteSettings)
 }
 
@@ -105,52 +88,35 @@ type Document struct {
 
 // An Element represents an XML element, its attributes, and its child tokens.
 type Element struct {
-	Space, Tag string   // namespace prefix and tag
+	Space, Tag string   // namespace and tag
 	Attr       []Attr   // key-value attribute pairs
 	Child      []Token  // child tokens (elements, comments, etc.)
 	parent     *Element // parent element
-	index      int      // token index in parent's children
 }
 
 // An Attr represents a key-value attribute of an XML element.
 type Attr struct {
-	Space, Key string   // The attribute's namespace prefix and key
-	Value      string   // The attribute value string
-	element    *Element // element containing the attribute
+	Space, Key string // The attribute's namespace and key
+	Value      string // The attribute value string
 }
 
-// charDataFlags are used with CharData tokens to store additional settings.
-type charDataFlags uint8
-
-const (
-	// The CharData was created by an indent function as whitespace.
-	whitespaceFlag charDataFlags = 1 << iota
-
-	// The CharData contains a CDATA section.
-	cdataFlag
-)
-
-// CharData can be used to represent character data or a CDATA section within
-// an XML document.
+// CharData represents character data within XML.
 type CharData struct {
-	Data   string
-	parent *Element
-	index  int
-	flags  charDataFlags
+	Data       string
+	parent     *Element
+	whitespace bool
 }
 
 // A Comment represents an XML comment.
 type Comment struct {
 	Data   string
 	parent *Element
-	index  int
 }
 
 // A Directive represents an XML directive.
 type Directive struct {
 	Data   string
 	parent *Element
-	index  int
 }
 
 // A ProcInst represents an XML processing instruction.
@@ -158,7 +124,6 @@ type ProcInst struct {
 	Target string
 	Inst   string
 	parent *Element
-	index  int
 }
 
 // NewDocument creates an XML document without a root element.
@@ -195,23 +160,16 @@ func (d *Document) SetRoot(e *Element) {
 	if e.parent != nil {
 		e.parent.RemoveChild(e)
 	}
+	e.setParent(&d.Element)
 
-	p := &d.Element
-	e.setParent(p)
-
-	// If there is already a root element, replace it.
-	for i, t := range p.Child {
+	for i, t := range d.Child {
 		if _, ok := t.(*Element); ok {
 			t.setParent(nil)
-			t.setIndex(-1)
-			p.Child[i] = e
-			e.setIndex(i)
+			d.Child[i] = e
 			return
 		}
 	}
-
-	// No existing root element, so add it.
-	p.addChild(e)
+	d.Child = append(d.Child, e)
 }
 
 // ReadFrom reads XML from the reader r into the document d. It returns the
@@ -288,8 +246,8 @@ func (d *Document) WriteToString() (s string, err error) {
 
 type indentFunc func(depth int) string
 
-// Indent modifies the document's element tree by inserting character data
-// tokens containing newlines and indentation. The amount of indentation per
+// Indent modifies the document's element tree by inserting CharData entities
+// containing carriage returns and indentation. The amount of indentation per
 // depth level is given as spaces. Pass etree.NoIndent for spaces if you want
 // no indentation at all.
 func (d *Document) Indent(spaces int) {
@@ -297,30 +255,22 @@ func (d *Document) Indent(spaces int) {
 	switch {
 	case spaces < 0:
 		indent = func(depth int) string { return "" }
-	case d.WriteSettings.UseCRLF == true:
-		indent = func(depth int) string { return indentCRLF(depth*spaces, indentSpaces) }
 	default:
-		indent = func(depth int) string { return indentLF(depth*spaces, indentSpaces) }
+		indent = func(depth int) string { return crIndent(depth*spaces, crsp) }
 	}
 	d.Element.indent(0, indent)
 }
 
 // IndentTabs modifies the document's element tree by inserting CharData
-// tokens containing newlines and tabs for indentation.  One tab is used per
-// indentation level.
+// entities containing carriage returns and tabs for indentation.  One tab is
+// used per indentation level.
 func (d *Document) IndentTabs() {
-	var indent indentFunc
-	switch d.WriteSettings.UseCRLF {
-	case true:
-		indent = func(depth int) string { return indentCRLF(depth, indentTabs) }
-	default:
-		indent = func(depth int) string { return indentLF(depth, indentTabs) }
-	}
+	indent := func(depth int) string { return crIndent(depth, crtab) }
 	d.Element.indent(0, indent)
 }
 
 // NewElement creates an unparented element with the specified tag. The tag
-// may be prefixed by a namespace prefix and a colon.
+// may be prefixed by a namespace and a colon.
 func NewElement(tag string) *Element {
 	space, stag := spaceDecompose(tag)
 	return newElement(space, stag, nil)
@@ -335,7 +285,6 @@ func newElement(space, tag string, parent *Element) *Element {
 		Attr:   make([]Attr, 0),
 		Child:  make([]Token, 0),
 		parent: parent,
-		index:  -1,
 	}
 	if parent != nil {
 		parent.addChild(e)
@@ -347,210 +296,38 @@ func newElement(space, tag string, parent *Element) *Element {
 // and children. The returned element has no parent but can be parented to a
 // another element using AddElement, or to a document using SetRoot.
 func (e *Element) Copy() *Element {
-	return e.dup(nil).(*Element)
+	var parent *Element
+	return e.dup(parent).(*Element)
 }
 
-// FullTag returns the element e's complete tag, including namespace prefix if
-// present.
-func (e *Element) FullTag() string {
-	if e.Space == "" {
-		return e.Tag
-	}
-	return e.Space + ":" + e.Tag
-}
-
-// NamespaceURI returns the XML namespace URI associated with the element. If
-// the element is part of the XML default namespace, NamespaceURI returns the
-// empty string.
-func (e *Element) NamespaceURI() string {
-	if e.Space == "" {
-		return e.findDefaultNamespaceURI()
-	}
-	return e.findLocalNamespaceURI(e.Space)
-}
-
-// findLocalNamespaceURI finds the namespace URI corresponding to the
-// requested prefix.
-func (e *Element) findLocalNamespaceURI(prefix string) string {
-	for _, a := range e.Attr {
-		if a.Space == "xmlns" && a.Key == prefix {
-			return a.Value
-		}
-	}
-
-	if e.parent == nil {
-		return ""
-	}
-
-	return e.parent.findLocalNamespaceURI(prefix)
-}
-
-// findDefaultNamespaceURI finds the default namespace URI of the element.
-func (e *Element) findDefaultNamespaceURI() string {
-	for _, a := range e.Attr {
-		if a.Space == "" && a.Key == "xmlns" {
-			return a.Value
-		}
-	}
-
-	if e.parent == nil {
-		return ""
-	}
-
-	return e.parent.findDefaultNamespaceURI()
-}
-
-// hasText returns true if the element has character data immediately
-// folllowing the element's opening tag.
-func (e *Element) hasText() bool {
-	if len(e.Child) == 0 {
-		return false
-	}
-	_, ok := e.Child[0].(*CharData)
-	return ok
-}
-
-// namespacePrefix returns the namespace prefix associated with the element.
-func (e *Element) namespacePrefix() string {
-	return e.Space
-}
-
-// name returns the tag associated with the element.
-func (e *Element) name() string {
-	return e.Tag
-}
-
-// Text returns all character data immediately following the element's opening
-// tag.
+// Text returns the characters immediately following the element's
+// opening tag.
 func (e *Element) Text() string {
 	if len(e.Child) == 0 {
 		return ""
 	}
-
-	text := ""
-	for _, ch := range e.Child {
-		if cd, ok := ch.(*CharData); ok {
-			if text == "" {
-				text = cd.Data
-			} else {
-				text = text + cd.Data
-			}
-		} else {
-			break
-		}
+	if cd, ok := e.Child[0].(*CharData); ok {
+		return cd.Data
 	}
-	return text
+	return ""
 }
 
-// SetText replaces all character data immediately following an element's
-// opening tag with the requested string.
+// SetText replaces an element's subsidiary CharData text with a new string.
 func (e *Element) SetText(text string) {
-	e.replaceText(0, text, 0)
-}
-
-// SetCData replaces all character data immediately following an element's
-// opening tag with a CDATA section.
-func (e *Element) SetCData(text string) {
-	e.replaceText(0, text, cdataFlag)
-}
-
-// Tail returns all character data immediately following the element's end
-// tag.
-func (e *Element) Tail() string {
-	if e.Parent() == nil {
-		return ""
-	}
-
-	p := e.Parent()
-	i := e.Index()
-
-	text := ""
-	for _, ch := range p.Child[i+1:] {
-		if cd, ok := ch.(*CharData); ok {
-			if text == "" {
-				text = cd.Data
-			} else {
-				text = text + cd.Data
-			}
-		} else {
-			break
+	if len(e.Child) > 0 {
+		if cd, ok := e.Child[0].(*CharData); ok {
+			cd.Data = text
+			return
 		}
 	}
-	return text
-}
-
-// SetTail replaces all character data immediately following the element's end
-// tag with the requested string.
-func (e *Element) SetTail(text string) {
-	if e.Parent() == nil {
-		return
-	}
-
-	p := e.Parent()
-	p.replaceText(e.Index()+1, text, 0)
-}
-
-// replaceText is a helper function that replaces a series of chardata tokens
-// starting at index i with the requested text.
-func (e *Element) replaceText(i int, text string, flags charDataFlags) {
-	end := e.findTermCharDataIndex(i)
-
-	switch {
-	case end == i:
-		if text != "" {
-			// insert a new chardata token at index i
-			cd := newCharData(text, flags, nil)
-			e.InsertChildAt(i, cd)
-		}
-
-	case end == i+1:
-		if text == "" {
-			// remove the chardata token at index i
-			e.RemoveChildAt(i)
-		} else {
-			// replace the first and only character token at index i
-			cd := e.Child[i].(*CharData)
-			cd.Data, cd.flags = text, flags
-		}
-
-	default:
-		if text == "" {
-			// remove all chardata tokens starting from index i
-			copy(e.Child[i:], e.Child[end:])
-			removed := end - i
-			e.Child = e.Child[:len(e.Child)-removed]
-			for j := i; j < len(e.Child); j++ {
-				e.Child[j].setIndex(j)
-			}
-		} else {
-			// replace the first chardata token at index i and remove all
-			// subsequent chardata tokens
-			cd := e.Child[i].(*CharData)
-			cd.Data, cd.flags = text, flags
-			copy(e.Child[i+1:], e.Child[end:])
-			removed := end - (i + 1)
-			e.Child = e.Child[:len(e.Child)-removed]
-			for j := i + 1; j < len(e.Child); j++ {
-				e.Child[j].setIndex(j)
-			}
-		}
-	}
-}
-
-// findTermCharDataIndex finds the index of the first child token that isn't
-// a CharData token. It starts from the requested start index.
-func (e *Element) findTermCharDataIndex(start int) int {
-	for i := start; i < len(e.Child); i++ {
-		if _, ok := e.Child[i].(*CharData); !ok {
-			return i
-		}
-	}
-	return len(e.Child)
+	cd := newCharData(text, false, e)
+	copy(e.Child[1:], e.Child[0:])
+	e.Child[0] = cd
 }
 
 // CreateElement creates an element with the specified tag and adds it as the
 // last child element of the element e. The tag may be prefixed by a namespace
-// prefix and a colon.
+// and a colon.
 func (e *Element) CreateElement(tag string) *Element {
 	space, stag := spaceDecompose(tag)
 	return newElement(space, stag, e)
@@ -563,93 +340,43 @@ func (e *Element) AddChild(t Token) {
 	if t.Parent() != nil {
 		t.Parent().RemoveChild(t)
 	}
-
 	t.setParent(e)
 	e.addChild(t)
 }
 
 // InsertChild inserts the token t before e's existing child token ex. If ex
-// is nil or ex is not a child of e, then t is added to the end of e's child
-// token list. If token t was already the child of another element, it is
-// first removed from its current parent element.
-//
-// Deprecated: InsertChild is deprecated. Use InsertChildAt instead.
+// is nil (or if ex is not a child of e), then t is added to the end of e's
+// child token list. If token t was already the child of another element, it
+// is first removed from its current parent element.
 func (e *Element) InsertChild(ex Token, t Token) {
-	if ex == nil || ex.Parent() != e {
-		e.AddChild(t)
-		return
-	}
-
 	if t.Parent() != nil {
 		t.Parent().RemoveChild(t)
 	}
-
 	t.setParent(e)
 
-	i := ex.Index()
-	e.Child = append(e.Child, nil)
-	copy(e.Child[i+1:], e.Child[i:])
-	e.Child[i] = t
-
-	for j := i; j < len(e.Child); j++ {
-		e.Child[j].setIndex(j)
-	}
-}
-
-// InsertChildAt inserts the token t into the element e's list of child tokens
-// just before the requested index. If the index is greater than or equal to
-// the length of the list of child tokens, the token t is added to the end of
-// the list.
-func (e *Element) InsertChildAt(index int, t Token) {
-	if index >= len(e.Child) {
-		e.AddChild(t)
-		return
-	}
-
-	if t.Parent() != nil {
-		if t.Parent() == e && t.Index() > index {
-			index--
+	for i, c := range e.Child {
+		if c == ex {
+			e.Child = append(e.Child, nil)
+			copy(e.Child[i+1:], e.Child[i:])
+			e.Child[i] = t
+			return
 		}
-		t.Parent().RemoveChild(t)
 	}
-
-	t.setParent(e)
-
-	e.Child = append(e.Child, nil)
-	copy(e.Child[index+1:], e.Child[index:])
-	e.Child[index] = t
-
-	for j := index; j < len(e.Child); j++ {
-		e.Child[j].setIndex(j)
-	}
+	e.addChild(t)
 }
 
 // RemoveChild attempts to remove the token t from element e's list of
 // children. If the token t is a child of e, then it is returned. Otherwise,
 // nil is returned.
 func (e *Element) RemoveChild(t Token) Token {
-	if t.Parent() != e {
-		return nil
+	for i, c := range e.Child {
+		if c == t {
+			e.Child = append(e.Child[:i], e.Child[i+1:]...)
+			c.setParent(nil)
+			return t
+		}
 	}
-	return e.RemoveChildAt(t.Index())
-}
-
-// RemoveChildAt removes the index-th child token from the element e. The
-// removed child token is returned. If the index is out of bounds, no child is
-// removed and nil is returned.
-func (e *Element) RemoveChildAt(index int) Token {
-	if index >= len(e.Child) {
-		return nil
-	}
-
-	t := e.Child[index]
-	for j := index + 1; j < len(e.Child); j++ {
-		e.Child[j].setIndex(j - 1)
-	}
-	e.Child = append(e.Child[:index], e.Child[index+1:]...)
-	t.setIndex(-1)
-	t.setParent(nil)
-	return t
+	return nil
 }
 
 // ReadFrom reads XML from the reader r and stores the result as a new child
@@ -659,7 +386,6 @@ func (e *Element) readFrom(ri io.Reader, settings ReadSettings) (n int64, err er
 	dec := xml.NewDecoder(r)
 	dec.CharsetReader = settings.CharsetReader
 	dec.Strict = !settings.Permissive
-	dec.Entity = settings.Entity
 	var stack stack
 	stack.push(e)
 	for {
@@ -679,18 +405,14 @@ func (e *Element) readFrom(ri io.Reader, settings ReadSettings) (n int64, err er
 		case xml.StartElement:
 			e := newElement(t.Name.Space, t.Name.Local, top)
 			for _, a := range t.Attr {
-				e.createAttr(a.Name.Space, a.Name.Local, a.Value, e)
+				e.createAttr(a.Name.Space, a.Name.Local, a.Value)
 			}
 			stack.push(e)
 		case xml.EndElement:
 			stack.pop()
 		case xml.CharData:
 			data := string(t)
-			var flags charDataFlags
-			if isWhitespace(data) {
-				flags = whitespaceFlag
-			}
-			newCharData(data, flags, top)
+			newCharData(data, isWhitespace(data), top)
 		case xml.Comment:
 			newComment(string(t), top)
 		case xml.Directive:
@@ -703,7 +425,7 @@ func (e *Element) readFrom(ri io.Reader, settings ReadSettings) (n int64, err er
 
 // SelectAttr finds an element attribute matching the requested key and
 // returns it if found. Returns nil if no matching attribute is found. The key
-// may be prefixed by a namespace prefix and a colon.
+// may be prefixed by a namespace and a colon.
 func (e *Element) SelectAttr(key string) *Attr {
 	space, skey := spaceDecompose(key)
 	for i, a := range e.Attr {
@@ -715,8 +437,8 @@ func (e *Element) SelectAttr(key string) *Attr {
 }
 
 // SelectAttrValue finds an element attribute matching the requested key and
-// returns its value if found. The key may be prefixed by a namespace prefix
-// and a colon. If the key is not found, the dflt value is returned instead.
+// returns its value if found. The key may be prefixed by a namespace and a
+// colon. If the key is not found, the dflt value is returned instead.
 func (e *Element) SelectAttrValue(key, dflt string) string {
 	space, skey := spaceDecompose(key)
 	for _, a := range e.Attr {
@@ -739,8 +461,8 @@ func (e *Element) ChildElements() []*Element {
 }
 
 // SelectElement returns the first child element with the given tag. The tag
-// may be prefixed by a namespace prefix and a colon. Returns nil if no
-// element with a matching tag was found.
+// may be prefixed by a namespace and a colon. Returns nil if no element with
+// a matching tag was found.
 func (e *Element) SelectElement(tag string) *Element {
 	space, stag := spaceDecompose(tag)
 	for _, t := range e.Child {
@@ -752,7 +474,7 @@ func (e *Element) SelectElement(tag string) *Element {
 }
 
 // SelectElements returns a slice of all child elements with the given tag.
-// The tag may be prefixed by a namespace prefix and a colon.
+// The tag may be prefixed by a namespace and a colon.
 func (e *Element) SelectElements(tag string) []*Element {
 	space, stag := spaceDecompose(tag)
 	var elements []*Element
@@ -897,16 +619,14 @@ func (e *Element) indent(depth int, indent indentFunc) {
 	e.Child = make([]Token, 0, n*2+1)
 	isCharData, firstNonCharData := false, true
 	for _, c := range oldChild {
-		// Insert NL+indent before child if it's not character data.
+
+		// Insert CR+indent before child if it's not character data.
 		// Exceptions: when it's the first non-character-data child, or when
 		// the child is at root depth.
 		_, isCharData = c.(*CharData)
 		if !isCharData {
 			if !firstNonCharData || depth > 0 {
-				s := indent(depth)
-				if s != "" {
-					newCharData(s, whitespaceFlag, e)
-				}
+				newCharData(indent(depth), true, e)
 			}
 			firstNonCharData = false
 		}
@@ -919,13 +639,10 @@ func (e *Element) indent(depth int, indent indentFunc) {
 		}
 	}
 
-	// Insert NL+indent before the last child.
+	// Insert CR+indent before the last child.
 	if !isCharData {
 		if !firstNonCharData || depth > 0 {
-			s := indent(depth - 1)
-			if s != "" {
-				newCharData(s, whitespaceFlag, e)
-			}
+			newCharData(indent(depth-1), true, e)
 		}
 	}
 }
@@ -935,7 +652,7 @@ func (e *Element) stripIndent() {
 	// Count the number of non-indent child tokens
 	n := len(e.Child)
 	for _, c := range e.Child {
-		if cd, ok := c.(*CharData); ok && cd.IsWhitespace() {
+		if cd, ok := c.(*CharData); ok && cd.whitespace {
 			n--
 		}
 	}
@@ -947,11 +664,10 @@ func (e *Element) stripIndent() {
 	newChild := make([]Token, n)
 	j := 0
 	for _, c := range e.Child {
-		if cd, ok := c.(*CharData); ok && cd.IsWhitespace() {
+		if cd, ok := c.(*CharData); ok && cd.whitespace {
 			continue
 		}
 		newChild[j] = c
-		newChild[j].setIndex(j)
 		j++
 	}
 	e.Child = newChild
@@ -965,7 +681,6 @@ func (e *Element) dup(parent *Element) Token {
 		Attr:   make([]Attr, len(e.Attr)),
 		Child:  make([]Token, len(e.Child)),
 		parent: parent,
-		index:  e.index,
 	}
 	for i, t := range e.Child {
 		ne.Child[i] = t.dup(ne)
@@ -982,27 +697,19 @@ func (e *Element) Parent() *Element {
 	return e.parent
 }
 
-// Index returns the index of this element within its parent element's
-// list of child tokens. If this element has no parent element, the index
-// is -1.
-func (e *Element) Index() int {
-	return e.index
-}
-
 // setParent replaces the element token's parent.
 func (e *Element) setParent(parent *Element) {
 	e.parent = parent
 }
 
-// setIndex sets the element token's index within its parent's Child slice.
-func (e *Element) setIndex(index int) {
-	e.index = index
-}
-
 // writeTo serializes the element to the writer w.
 func (e *Element) writeTo(w *bufio.Writer, s *WriteSettings) {
 	w.WriteByte('<')
-	w.WriteString(e.FullTag())
+	if e.Space != "" {
+		w.WriteString(e.Space)
+		w.WriteByte(':')
+	}
+	w.WriteString(e.Tag)
 	for _, a := range e.Attr {
 		w.WriteByte(' ')
 		a.writeTo(w, s)
@@ -1013,12 +720,20 @@ func (e *Element) writeTo(w *bufio.Writer, s *WriteSettings) {
 			c.writeTo(w, s)
 		}
 		w.Write([]byte{'<', '/'})
-		w.WriteString(e.FullTag())
+		if e.Space != "" {
+			w.WriteString(e.Space)
+			w.WriteByte(':')
+		}
+		w.WriteString(e.Tag)
 		w.WriteByte('>')
 	} else {
 		if s.CanonicalEndTags {
 			w.Write([]byte{'>', '<', '/'})
-			w.WriteString(e.FullTag())
+			if e.Space != "" {
+				w.WriteString(e.Space)
+				w.WriteByte(':')
+			}
+			w.WriteString(e.Tag)
 			w.WriteByte('>')
 		} else {
 			w.Write([]byte{'/', '>'})
@@ -1028,140 +743,98 @@ func (e *Element) writeTo(w *bufio.Writer, s *WriteSettings) {
 
 // addChild adds a child token to the element e.
 func (e *Element) addChild(t Token) {
-	t.setIndex(len(e.Child))
 	e.Child = append(e.Child, t)
 }
 
 // CreateAttr creates an attribute and adds it to element e. The key may be
-// prefixed by a namespace prefix and a colon. If an attribute with the key
-// already exists, its value is replaced.
+// prefixed by a namespace and a colon. If an attribute with the key already
+// exists, its value is replaced.
 func (e *Element) CreateAttr(key, value string) *Attr {
 	space, skey := spaceDecompose(key)
-	return e.createAttr(space, skey, value, e)
+	return e.createAttr(space, skey, value)
 }
 
 // createAttr is a helper function that creates attributes.
-func (e *Element) createAttr(space, key, value string, parent *Element) *Attr {
+func (e *Element) createAttr(space, key, value string) *Attr {
 	for i, a := range e.Attr {
 		if space == a.Space && key == a.Key {
 			e.Attr[i].Value = value
 			return &e.Attr[i]
 		}
 	}
-	a := Attr{
-		Space:   space,
-		Key:     key,
-		Value:   value,
-		element: parent,
-	}
+	a := Attr{space, key, value}
 	e.Attr = append(e.Attr, a)
 	return &e.Attr[len(e.Attr)-1]
 }
 
-// RemoveAttr removes and returns a copy of the first attribute of the element
-// whose key matches the given key. The key may be prefixed by a namespace
-// prefix and a colon. If a matching attribute does not exist, nil is
-// returned.
+// RemoveAttr removes and returns the first attribute of the element whose key
+// matches the given key. The key may be prefixed by a namespace and a colon.
+// If an equal attribute does not exist, nil is returned.
 func (e *Element) RemoveAttr(key string) *Attr {
 	space, skey := spaceDecompose(key)
 	for i, a := range e.Attr {
 		if space == a.Space && skey == a.Key {
 			e.Attr = append(e.Attr[0:i], e.Attr[i+1:]...)
-			return &Attr{
-				Space:   a.Space,
-				Key:     a.Key,
-				Value:   a.Value,
-				element: nil,
-			}
+			return &a
 		}
 	}
 	return nil
 }
 
-// SortAttrs sorts the element's attributes lexicographically by key.
-func (e *Element) SortAttrs() {
-	sort.Sort(byAttr(e.Attr))
-}
+var xmlReplacerNormal = strings.NewReplacer(
+	"&", "&amp;",
+	"<", "&lt;",
+	">", "&gt;",
+	"'", "&apos;",
+	`"`, "&quot;",
+)
 
-type byAttr []Attr
+var xmlReplacerCanonicalText = strings.NewReplacer(
+	"&", "&amp;",
+	"<", "&lt;",
+	">", "&gt;",
+	"\r", "&#xD;",
+)
 
-func (a byAttr) Len() int {
-	return len(a)
-}
-
-func (a byAttr) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-
-func (a byAttr) Less(i, j int) bool {
-	sp := strings.Compare(a[i].Space, a[j].Space)
-	if sp == 0 {
-		return strings.Compare(a[i].Key, a[j].Key) < 0
-	}
-	return sp < 0
-}
-
-// FullKey returns the attribute a's complete key, including namespace prefix
-// if present.
-func (a *Attr) FullKey() string {
-	if a.Space == "" {
-		return a.Key
-	}
-	return a.Space + ":" + a.Key
-}
-
-// Element returns the element containing the attribute.
-func (a *Attr) Element() *Element {
-	return a.element
-}
-
-// NamespaceURI returns the XML namespace URI associated with the attribute.
-// If the element is part of the XML default namespace, NamespaceURI returns
-// the empty string.
-func (a *Attr) NamespaceURI() string {
-	return a.element.NamespaceURI()
-}
+var xmlReplacerCanonicalAttrVal = strings.NewReplacer(
+	"&", "&amp;",
+	"<", "&lt;",
+	`"`, "&quot;",
+	"\t", "&#x9;",
+	"\n", "&#xA;",
+	"\r", "&#xD;",
+)
 
 // writeTo serializes the attribute to the writer.
 func (a *Attr) writeTo(w *bufio.Writer, s *WriteSettings) {
-	w.WriteString(a.FullKey())
-	w.WriteString(`="`)
-	var m escapeMode
-	if s.CanonicalAttrVal {
-		m = escapeCanonicalAttr
-	} else {
-		m = escapeNormal
+	if a.Space != "" {
+		w.WriteString(a.Space)
+		w.WriteByte(':')
 	}
-	escapeString(w, a.Value, m)
+	w.WriteString(a.Key)
+	w.WriteString(`="`)
+	var r *strings.Replacer
+	if s.CanonicalAttrVal {
+		r = xmlReplacerCanonicalAttrVal
+	} else {
+		r = xmlReplacerNormal
+	}
+	w.WriteString(r.Replace(a.Value))
 	w.WriteByte('"')
 }
 
-// NewText creates a parentless CharData token containing character data.
-func NewText(text string) *CharData {
-	return newCharData(text, 0, nil)
-}
-
-// NewCData creates a parentless XML character CDATA section.
-func NewCData(data string) *CharData {
-	return newCharData(data, cdataFlag, nil)
-}
-
-// NewCharData creates a parentless CharData token containing character data.
-//
-// Deprecated: NewCharData is deprecated. Instead, use NewText, which does the
-// same thing.
+// NewCharData creates a parentless XML character data entity.
 func NewCharData(data string) *CharData {
-	return newCharData(data, 0, nil)
+	return newCharData(data, false, nil)
 }
 
-// newCharData creates a character data token and binds it to a parent
+// newCharData creates an XML character data entity and binds it to a parent
 // element. If parent is nil, the CharData token remains unbound.
-func newCharData(data string, flags charDataFlags, parent *Element) *CharData {
+func newCharData(data string, whitespace bool, parent *Element) *CharData {
 	c := &CharData{
-		Data:   data,
-		parent: parent,
-		index:  -1,
-		flags:  flags,
+		Data:       data,
+		whitespace: whitespace,
+		parent:     parent,
 	}
 	if parent != nil {
 		parent.addChild(c)
@@ -1169,47 +842,19 @@ func newCharData(data string, flags charDataFlags, parent *Element) *CharData {
 	return c
 }
 
-// CreateText creates a CharData token containing character data and adds it
-// as a child of element e.
-func (e *Element) CreateText(text string) *CharData {
-	return newCharData(text, 0, e)
-}
-
-// CreateCData creates a CharData token containing a CDATA section and adds it
-// as a child of element e.
-func (e *Element) CreateCData(data string) *CharData {
-	return newCharData(data, cdataFlag, e)
-}
-
-// CreateCharData creates a CharData token containing character data and adds
-// it as a child of element e.
-//
-// Deprecated: CreateCharData is deprecated. Instead, use CreateText, which
-// does the same thing.
+// CreateCharData creates an XML character data entity and adds it as a child
+// of element e.
 func (e *Element) CreateCharData(data string) *CharData {
-	return newCharData(data, 0, e)
+	return newCharData(data, false, e)
 }
 
 // dup duplicates the character data.
 func (c *CharData) dup(parent *Element) Token {
 	return &CharData{
-		Data:   c.Data,
-		flags:  c.flags,
-		parent: parent,
-		index:  c.index,
+		Data:       c.Data,
+		whitespace: c.whitespace,
+		parent:     parent,
 	}
-}
-
-// IsCData returns true if the character data token is to be encoded as a
-// CDATA section.
-func (c *CharData) IsCData() bool {
-	return (c.flags & cdataFlag) != 0
-}
-
-// IsWhitespace returns true if the character data token was created by one of
-// the document Indent methods to contain only whitespace.
-func (c *CharData) IsWhitespace() bool {
-	return (c.flags & whitespaceFlag) != 0
 }
 
 // Parent returns the character data token's parent element, or nil if it has
@@ -1218,39 +863,20 @@ func (c *CharData) Parent() *Element {
 	return c.parent
 }
 
-// Index returns the index of this CharData token within its parent element's
-// list of child tokens. If this CharData token has no parent element, the
-// index is -1.
-func (c *CharData) Index() int {
-	return c.index
-}
-
 // setParent replaces the character data token's parent.
 func (c *CharData) setParent(parent *Element) {
 	c.parent = parent
 }
 
-// setIndex sets the CharData token's index within its parent element's Child
-// slice.
-func (c *CharData) setIndex(index int) {
-	c.index = index
-}
-
-// writeTo serializes character data to the writer.
+// writeTo serializes the character data entity to the writer.
 func (c *CharData) writeTo(w *bufio.Writer, s *WriteSettings) {
-	if c.IsCData() {
-		w.WriteString(`<![CDATA[`)
-		w.WriteString(c.Data)
-		w.WriteString(`]]>`)
+	var r *strings.Replacer
+	if s.CanonicalText {
+		r = xmlReplacerCanonicalText
 	} else {
-		var m escapeMode
-		if s.CanonicalText {
-			m = escapeCanonicalText
-		} else {
-			m = escapeNormal
-		}
-		escapeString(w, c.Data, m)
+		r = xmlReplacerNormal
 	}
+	w.WriteString(r.Replace(c.Data))
 }
 
 // NewComment creates a parentless XML comment.
@@ -1264,7 +890,6 @@ func newComment(comment string, parent *Element) *Comment {
 	c := &Comment{
 		Data:   comment,
 		parent: parent,
-		index:  -1,
 	}
 	if parent != nil {
 		parent.addChild(c)
@@ -1282,7 +907,6 @@ func (c *Comment) dup(parent *Element) Token {
 	return &Comment{
 		Data:   c.Data,
 		parent: parent,
-		index:  c.index,
 	}
 }
 
@@ -1291,22 +915,9 @@ func (c *Comment) Parent() *Element {
 	return c.parent
 }
 
-// Index returns the index of this Comment token within its parent element's
-// list of child tokens. If this Comment token has no parent element, the
-// index is -1.
-func (c *Comment) Index() int {
-	return c.index
-}
-
 // setParent replaces the comment token's parent.
 func (c *Comment) setParent(parent *Element) {
 	c.parent = parent
-}
-
-// setIndex sets the Comment token's index within its parent element's Child
-// slice.
-func (c *Comment) setIndex(index int) {
-	c.index = index
 }
 
 // writeTo serialies the comment to the writer.
@@ -1327,7 +938,6 @@ func newDirective(data string, parent *Element) *Directive {
 	d := &Directive{
 		Data:   data,
 		parent: parent,
-		index:  -1,
 	}
 	if parent != nil {
 		parent.addChild(d)
@@ -1346,7 +956,6 @@ func (d *Directive) dup(parent *Element) Token {
 	return &Directive{
 		Data:   d.Data,
 		parent: parent,
-		index:  d.index,
 	}
 }
 
@@ -1356,22 +965,9 @@ func (d *Directive) Parent() *Element {
 	return d.parent
 }
 
-// Index returns the index of this Directive token within its parent element's
-// list of child tokens. If this Directive token has no parent element, the
-// index is -1.
-func (d *Directive) Index() int {
-	return d.index
-}
-
 // setParent replaces the directive token's parent.
 func (d *Directive) setParent(parent *Element) {
 	d.parent = parent
-}
-
-// setIndex sets the Directive token's index within its parent element's Child
-// slice.
-func (d *Directive) setIndex(index int) {
-	d.index = index
 }
 
 // writeTo serializes the XML directive to the writer.
@@ -1393,7 +989,6 @@ func newProcInst(target, inst string, parent *Element) *ProcInst {
 		Target: target,
 		Inst:   inst,
 		parent: parent,
-		index:  -1,
 	}
 	if parent != nil {
 		parent.addChild(p)
@@ -1413,7 +1008,6 @@ func (p *ProcInst) dup(parent *Element) Token {
 		Target: p.Target,
 		Inst:   p.Inst,
 		parent: parent,
-		index:  p.index,
 	}
 }
 
@@ -1423,22 +1017,9 @@ func (p *ProcInst) Parent() *Element {
 	return p.parent
 }
 
-// Index returns the index of this ProcInst token within its parent element's
-// list of child tokens. If this ProcInst token has no parent element, the
-// index is -1.
-func (p *ProcInst) Index() int {
-	return p.index
-}
-
 // setParent replaces the processing instruction token's parent.
 func (p *ProcInst) setParent(parent *Element) {
 	p.parent = parent
-}
-
-// setIndex sets the processing instruction token's index within its parent
-// element's Child slice.
-func (p *ProcInst) setIndex(index int) {
-	p.index = index
 }
 
 // writeTo serializes the processing instruction to the writer.

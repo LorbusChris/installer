@@ -177,12 +177,12 @@ func (cs *IAMPolicyStatementConditionSet) UnmarshalJSON(b []byte) error {
 
 	for test_key, test_value := range data {
 		for var_key, var_values := range test_value {
-			switch var_values := var_values.(type) {
+			switch var_values.(type) {
 			case string:
-				out = append(out, IAMPolicyStatementCondition{Test: test_key, Variable: var_key, Values: []string{var_values}})
+				out = append(out, IAMPolicyStatementCondition{Test: test_key, Variable: var_key, Values: []string{var_values.(string)}})
 			case []interface{}:
 				values := []string{}
-				for _, v := range var_values {
+				for _, v := range var_values.([]interface{}) {
 					values = append(values, v.(string))
 				}
 				out = append(out, IAMPolicyStatementCondition{Test: test_key, Variable: var_key, Values: values})

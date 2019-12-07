@@ -133,24 +133,15 @@ func resourceAwsSfnStateMachineRead(d *schema.ResourceData, meta interface{}) er
 	if err := d.Set("creation_date", sm.CreationDate.Format(time.RFC3339)); err != nil {
 		log.Printf("[DEBUG] Error setting creation_date: %s", err)
 	}
-
-	tags := map[string]string{}
-
 	tagsResp, err := conn.ListTagsForResource(
 		&sfn.ListTagsForResourceInput{
 			ResourceArn: aws.String(d.Id()),
 		},
 	)
-
-	if err != nil && !isAWSErr(err, "UnknownOperationException", "") {
+	if err != nil {
 		return fmt.Errorf("error listing SFN Activity (%s) tags: %s", d.Id(), err)
 	}
-
-	if tagsResp != nil {
-		tags = tagsToMapSfn(tagsResp.Tags)
-	}
-
-	if err := d.Set("tags", tags); err != nil {
+	if err := d.Set("tags", tagsToMapSfn(tagsResp.Tags)); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

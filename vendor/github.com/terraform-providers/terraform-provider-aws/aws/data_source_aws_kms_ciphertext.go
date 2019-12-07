@@ -16,9 +16,8 @@ func dataSourceAwsKmsCiphertext() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"plaintext": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"key_id": {

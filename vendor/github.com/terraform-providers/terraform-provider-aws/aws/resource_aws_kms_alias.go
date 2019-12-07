@@ -182,15 +182,10 @@ func retryFindKmsAliasByName(conn *kms.KMS, name string) (*kms.AliasListEntry, e
 			return resource.NonRetryableError(err)
 		}
 		if resp == nil {
-			return resource.RetryableError(&resource.NotFoundError{})
+			return resource.RetryableError(err)
 		}
 		return nil
 	})
-
-	if isResourceTimeoutError(err) {
-		resp, err = findKmsAliasByName(conn, name, nil)
-	}
-
 	return resp, err
 }
 

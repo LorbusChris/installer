@@ -66,7 +66,6 @@ func resourceAwsMediaPackageChannel() *schema.Resource {
 					},
 				},
 			},
-			"tags": tagsSchema(),
 		},
 	}
 }
@@ -77,10 +76,6 @@ func resourceAwsMediaPackageChannelCreate(d *schema.ResourceData, meta interface
 	input := &mediapackage.CreateChannelInput{
 		Id:          aws.String(d.Get("channel_id").(string)),
 		Description: aws.String(d.Get("description").(string)),
-	}
-
-	if attr, ok := d.GetOk("tags"); ok {
-		input.Tags = tagsFromMapGeneric(attr.(map[string]interface{}))
 	}
 
 	_, err := conn.CreateChannel(input)
@@ -110,10 +105,6 @@ func resourceAwsMediaPackageChannelRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error setting hls_ingest: %s", err)
 	}
 
-	if err := d.Set("tags", tagsToMapGeneric(resp.Tags)); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
-
 	return nil
 }
 
@@ -128,10 +119,6 @@ func resourceAwsMediaPackageChannelUpdate(d *schema.ResourceData, meta interface
 	_, err := conn.UpdateChannel(input)
 	if err != nil {
 		return fmt.Errorf("error updating MediaPackage Channel: %s", err)
-	}
-
-	if err := setTagsMediaPackage(conn, d, d.Get("arn").(string)); err != nil {
-		return fmt.Errorf("error updating MediaPackage Channel (%s) tags: %s", d.Id(), err)
 	}
 
 	return resourceAwsMediaPackageChannelRead(d, meta)

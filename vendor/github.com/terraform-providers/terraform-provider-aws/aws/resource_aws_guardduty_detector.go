@@ -30,12 +30,10 @@ func resourceAwsGuardDutyDetector() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			// finding_publishing_frequency is marked as Computed:true since
-			// GuardDuty member accounts inherit setting from master account
 			"finding_publishing_frequency": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  "SIX_HOURS",
 			},
 		},
 	}
@@ -45,11 +43,8 @@ func resourceAwsGuardDutyDetectorCreate(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).guarddutyconn
 
 	input := guardduty.CreateDetectorInput{
-		Enable: aws.Bool(d.Get("enable").(bool)),
-	}
-
-	if v, ok := d.GetOk("finding_publishing_frequency"); ok {
-		input.FindingPublishingFrequency = aws.String(v.(string))
+		Enable:                     aws.Bool(d.Get("enable").(bool)),
+		FindingPublishingFrequency: aws.String(d.Get("finding_publishing_frequency").(string)),
 	}
 
 	log.Printf("[DEBUG] Creating GuardDuty Detector: %s", input)

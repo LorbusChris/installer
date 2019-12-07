@@ -224,10 +224,13 @@ func dataSourceAwsDynamoDbTableRead(d *schema.ResourceData, meta interface{}) er
 		TableName: aws.String(d.Id()),
 	})
 	if err != nil {
-		return fmt.Errorf("error describing DynamoDB Table (%s) Time to Live: %s", d.Id(), err)
+		return err
 	}
-	if err := d.Set("ttl", flattenDynamoDbTtl(ttlOut)); err != nil {
-		return fmt.Errorf("error setting ttl: %s", err)
+	if ttlOut.TimeToLiveDescription != nil {
+		err := d.Set("ttl", flattenDynamoDbTtl(ttlOut.TimeToLiveDescription))
+		if err != nil {
+			return err
+		}
 	}
 
 	tags, err := readDynamoDbTableTags(d.Get("arn").(string), conn)

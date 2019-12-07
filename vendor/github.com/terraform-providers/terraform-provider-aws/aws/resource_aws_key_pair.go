@@ -47,9 +47,9 @@ func resourceAwsKeyPair() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				StateFunc: func(v interface{}) string {
-					switch v := v.(type) {
+					switch v.(type) {
 					case string:
-						return strings.TrimSpace(v)
+						return strings.TrimSpace(v.(string))
 					default:
 						return ""
 					}

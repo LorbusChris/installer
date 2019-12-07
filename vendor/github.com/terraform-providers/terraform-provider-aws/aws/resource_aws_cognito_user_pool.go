@@ -148,19 +148,17 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 			},
 
 			"email_verification_subject": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validateCognitoUserPoolEmailVerificationSubject,
-				ConflictsWith: []string{"verification_message_template.0.email_subject"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateCognitoUserPoolEmailVerificationSubject,
 			},
 
 			"email_verification_message": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validateCognitoUserPoolEmailVerificationMessage,
-				ConflictsWith: []string{"verification_message_template.0.email_message"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateCognitoUserPoolEmailVerificationMessage,
 			},
 
 			"endpoint": {
@@ -393,10 +391,9 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 			},
 
 			"sms_verification_message": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validateCognitoUserPoolSmsVerificationMessage,
-				ConflictsWith: []string{"verification_message_template.0.sms_message"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateCognitoUserPoolSmsVerificationMessage,
 			},
 
 			"tags": tagsSchema(),
@@ -451,11 +448,10 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 							}, false),
 						},
 						"email_message": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ValidateFunc:  validateCognitoUserPoolTemplateEmailMessage,
-							ConflictsWith: []string{"email_verification_message"},
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validateCognitoUserPoolTemplateEmailMessage,
 						},
 						"email_message_by_link": {
 							Type:         schema.TypeString,
@@ -464,11 +460,10 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 							ValidateFunc: validateCognitoUserPoolTemplateEmailMessageByLink,
 						},
 						"email_subject": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ValidateFunc:  validateCognitoUserPoolTemplateEmailSubject,
-							ConflictsWith: []string{"email_verification_subject"},
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validateCognitoUserPoolTemplateEmailSubject,
 						},
 						"email_subject_by_link": {
 							Type:         schema.TypeString,
@@ -477,11 +472,10 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 							ValidateFunc: validateCognitoUserPoolTemplateEmailSubjectByLink,
 						},
 						"sms_message": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ValidateFunc:  validateCognitoUserPoolTemplateSmsMessage,
-							ConflictsWith: []string{"sms_verification_message"},
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validateCognitoUserPoolTemplateSmsMessage,
 						},
 					},
 				},

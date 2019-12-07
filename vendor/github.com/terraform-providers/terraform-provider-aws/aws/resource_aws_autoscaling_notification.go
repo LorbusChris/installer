@@ -43,8 +43,8 @@ func resourceAwsAutoscalingNotification() *schema.Resource {
 
 func resourceAwsAutoscalingNotificationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).autoscalingconn
-	gl := expandStringList(d.Get("group_names").(*schema.Set).List())
-	nl := expandStringList(d.Get("notifications").(*schema.Set).List())
+	gl := convertSetToList(d.Get("group_names").(*schema.Set))
+	nl := convertSetToList(d.Get("notifications").(*schema.Set))
 
 	topic := d.Get("topic_arn").(string)
 	if err := addNotificationConfigToGroupsWithTopic(conn, gl, nl, topic); err != nil {
@@ -59,7 +59,7 @@ func resourceAwsAutoscalingNotificationCreate(d *schema.ResourceData, meta inter
 
 func resourceAwsAutoscalingNotificationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).autoscalingconn
-	gl := expandStringList(d.Get("group_names").(*schema.Set).List())
+	gl := convertSetToList(d.Get("group_names").(*schema.Set))
 
 	opts := &autoscaling.DescribeNotificationConfigurationsInput{
 		AutoScalingGroupNames: gl,
@@ -120,7 +120,7 @@ func resourceAwsAutoscalingNotificationUpdate(d *schema.ResourceData, meta inter
 
 	// Notifications API call is a PUT, so we don't need to diff the list, just
 	// push whatever it is and AWS sorts it out
-	nl := expandStringList(d.Get("notifications").(*schema.Set).List())
+	nl := convertSetToList(d.Get("notifications").(*schema.Set))
 
 	o, n := d.GetChange("group_names")
 	if o == nil {
@@ -130,8 +130,10 @@ func resourceAwsAutoscalingNotificationUpdate(d *schema.ResourceData, meta inter
 		n = new(schema.Set)
 	}
 
-	remove := expandStringList(o.(*schema.Set).List())
-	add := expandStringList(n.(*schema.Set).List())
+	os := o.(*schema.Set)
+	ns := n.(*schema.Set)
+	remove := convertSetToList(os.Difference(ns))
+	add := convertSetToList(ns.Difference(os))
 
 	topic := d.Get("topic_arn").(string)
 
@@ -141,7 +143,7 @@ func resourceAwsAutoscalingNotificationUpdate(d *schema.ResourceData, meta inter
 
 	var update []*string
 	if d.HasChange("notifications") {
-		update = expandStringList(d.Get("group_names").(*schema.Set).List())
+		update = convertSetToList(d.Get("group_names").(*schema.Set))
 	} else {
 		update = add
 	}
@@ -189,10 +191,18 @@ func removeNotificationConfigToGroupsWithTopic(conn *autoscaling.AutoScaling, gr
 
 func resourceAwsAutoscalingNotificationDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).autoscalingconn
-
-	gl := expandStringList(d.Get("group_names").(*schema.Set).List())
+	gl := convertSetToList(d.Get("group_names").(*schema.Set))
 
 	topic := d.Get("topic_arn").(string)
 	err := removeNotificationConfigToGroupsWithTopic(conn, gl, topic)
 	return err
+}
+
+func convertSetToList(s *schema.Set) (nl []*string) {
+	l := s.List()
+	for _, n := range l {
+		nl = append(nl, aws.String(n.(string)))
+	}
+
+	return nl
 }

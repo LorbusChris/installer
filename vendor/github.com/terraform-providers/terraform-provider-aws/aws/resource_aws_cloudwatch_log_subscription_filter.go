@@ -21,9 +21,6 @@ func resourceAwsCloudwatchLogSubscriptionFilter() *schema.Resource {
 		Read:   resourceAwsCloudwatchLogSubscriptionFilterRead,
 		Update: resourceAwsCloudwatchLogSubscriptionFilterUpdate,
 		Delete: resourceAwsCloudwatchLogSubscriptionFilterDelete,
-		Importer: &schema.ResourceImporter{
-			State: resourceAwsCloudwatchLogSubscriptionFilterImport,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -157,13 +154,8 @@ func resourceAwsCloudwatchLogSubscriptionFilterRead(d *schema.ResourceData, meta
 	}
 
 	for _, subscriptionFilter := range resp.SubscriptionFilters {
-		if aws.StringValue(subscriptionFilter.LogGroupName) == log_group_name {
+		if *subscriptionFilter.LogGroupName == log_group_name {
 			d.SetId(cloudwatchLogsSubscriptionFilterId(log_group_name))
-			d.Set("destination_arn", aws.StringValue(subscriptionFilter.DestinationArn))
-			d.Set("distribution", aws.StringValue(subscriptionFilter.Distribution))
-			d.Set("filter_pattern", aws.StringValue(subscriptionFilter.FilterPattern))
-			d.Set("log_group_name", aws.StringValue(subscriptionFilter.LogGroupName))
-			d.Set("role_arn", aws.StringValue(subscriptionFilter.RoleArn))
 			return nil // OK, matching subscription filter found
 		}
 	}
@@ -193,22 +185,6 @@ func resourceAwsCloudwatchLogSubscriptionFilterDelete(d *schema.ResourceData, me
 	}
 
 	return nil
-}
-
-func resourceAwsCloudwatchLogSubscriptionFilterImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	idParts := strings.Split(d.Id(), "|")
-	if len(idParts) < 2 {
-		return nil, fmt.Errorf("unexpected format of ID (%q), expected <log-group-name>|<filter-name>", d.Id())
-	}
-
-	logGroupName := idParts[0]
-	filterNamePrefix := idParts[1]
-
-	d.Set("log_group_name", logGroupName)
-	d.Set("name", filterNamePrefix)
-	d.SetId(cloudwatchLogsSubscriptionFilterId(filterNamePrefix))
-
-	return []*schema.ResourceData{d}, nil
 }
 
 func cloudwatchLogsSubscriptionFilterId(log_group_name string) string {

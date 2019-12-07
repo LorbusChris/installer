@@ -1,14 +1,12 @@
-// Copyright 2015-2019 Brett Vickers.
+// Copyright 2015 Brett Vickers.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package etree
 
 import (
-	"bufio"
 	"io"
 	"strings"
-	"unicode/utf8"
 )
 
 // A simple stack
@@ -149,35 +147,22 @@ func spaceDecompose(str string) (space, key string) {
 	return str[:colon], str[colon+1:]
 }
 
-// Strings used by indentCRLF and indentLF
+// Strings used by crIndent
 const (
-	indentSpaces = "\r\n                                                                "
-	indentTabs   = "\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"
+	crsp  = "\n                                                                "
+	crtab = "\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"
 )
 
-// indentCRLF returns a CRLF newline followed by n copies of the first
-// non-CRLF character in the source string.
-func indentCRLF(n int, source string) string {
+// crIndent returns a carriage return followed by n copies of the
+// first non-CR character in the source string.
+func crIndent(n int, source string) string {
 	switch {
 	case n < 0:
-		return source[:2]
-	case n < len(source)-1:
-		return source[:n+2]
+		return source[:1]
+	case n < len(source):
+		return source[:n+1]
 	default:
-		return source + strings.Repeat(source[2:3], n-len(source)+2)
-	}
-}
-
-// indentLF returns a LF newline followed by n copies of the first non-LF
-// character in the source string.
-func indentLF(n int, source string) string {
-	switch {
-	case n < 0:
-		return source[1:2]
-	case n < len(source)-1:
-		return source[1 : n+2]
-	default:
-		return source[1:] + strings.Repeat(source[2:3], n-len(source)+2)
+		return source + strings.Repeat(source[1:2], n-len(source)+1)
 	}
 }
 
@@ -200,77 +185,4 @@ func isInteger(s string) bool {
 		}
 	}
 	return true
-}
-
-type escapeMode byte
-
-const (
-	escapeNormal escapeMode = iota
-	escapeCanonicalText
-	escapeCanonicalAttr
-)
-
-// escapeString writes an escaped version of a string to the writer.
-func escapeString(w *bufio.Writer, s string, m escapeMode) {
-	var esc []byte
-	last := 0
-	for i := 0; i < len(s); {
-		r, width := utf8.DecodeRuneInString(s[i:])
-		i += width
-		switch r {
-		case '&':
-			esc = []byte("&amp;")
-		case '<':
-			esc = []byte("&lt;")
-		case '>':
-			if m == escapeCanonicalAttr {
-				continue
-			}
-			esc = []byte("&gt;")
-		case '\'':
-			if m != escapeNormal {
-				continue
-			}
-			esc = []byte("&apos;")
-		case '"':
-			if m == escapeCanonicalText {
-				continue
-			}
-			esc = []byte("&quot;")
-		case '\t':
-			if m != escapeCanonicalAttr {
-				continue
-			}
-			esc = []byte("&#x9;")
-		case '\n':
-			if m != escapeCanonicalAttr {
-				continue
-			}
-			esc = []byte("&#xA;")
-		case '\r':
-			if m == escapeNormal {
-				continue
-			}
-			esc = []byte("&#xD;")
-		default:
-			if !isInCharacterRange(r) || (r == 0xFFFD && width == 1) {
-				esc = []byte("\uFFFD")
-				break
-			}
-			continue
-		}
-		w.WriteString(s[last : i-width])
-		w.Write(esc)
-		last = i
-	}
-	w.WriteString(s[last:])
-}
-
-func isInCharacterRange(r rune) bool {
-	return r == 0x09 ||
-		r == 0x0A ||
-		r == 0x0D ||
-		r >= 0x20 && r <= 0xD7FF ||
-		r >= 0xE000 && r <= 0xFFFD ||
-		r >= 0x10000 && r <= 0x10FFFF
 }

@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -34,10 +33,9 @@ func resourceAwsIotThingType() *schema.Resource {
 				ValidateFunc: validateIotThingTypeName,
 			},
 			"properties": {
-				Type:             schema.TypeList,
-				Optional:         true,
-				MaxItems:         1,
-				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"description": {
@@ -137,10 +135,7 @@ func resourceAwsIotThingTypeRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("arn", out.ThingTypeArn)
-
-	if err := d.Set("properties", flattenIotThingTypeProperties(out.ThingTypeProperties)); err != nil {
-		return fmt.Errorf("error setting properties: %s", err)
-	}
+	d.Set("properties", flattenIotThingTypeProperties(out.ThingTypeProperties))
 
 	return nil
 }

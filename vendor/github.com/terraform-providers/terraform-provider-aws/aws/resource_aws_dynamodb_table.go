@@ -128,7 +128,7 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 				},
 			},
 			"ttl": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -139,12 +139,10 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Required: true,
 						},
 					},
 				},
-				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 			},
 			"local_secondary_index": {
 				Type:     schema.TypeSet,
@@ -386,10 +384,8 @@ func resourceAwsDynamoDbTableCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if d.Get("ttl.0.enabled").(bool) {
-		if err := updateDynamoDbTimeToLive(d.Id(), d.Get("ttl").([]interface{}), conn); err != nil {
-			return fmt.Errorf("error enabling DynamoDB Table (%s) Time to Live: %s", d.Id(), err)
-		}
+	if err := updateDynamoDbTimeToLive(d, conn); err != nil {
+		return fmt.Errorf("error enabling DynamoDB Table (%s) time to live: %s", d.Id(), err)
 	}
 
 	if err := setTagsDynamoDb(conn, d); err != nil {
@@ -546,7 +542,7 @@ func resourceAwsDynamoDbTableUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("ttl") {
-		if err := updateDynamoDbTimeToLive(d.Id(), d.Get("ttl").([]interface{}), conn); err != nil {
+		if err := updateDynamoDbTimeToLive(d, conn); err != nil {
 			return fmt.Errorf("error updating DynamoDB Table (%s) time to live: %s", d.Id(), err)
 		}
 	}
@@ -591,10 +587,13 @@ func resourceAwsDynamoDbTableRead(d *schema.ResourceData, meta interface{}) erro
 		TableName: aws.String(d.Id()),
 	})
 	if err != nil {
-		return fmt.Errorf("error describing DynamoDB Table (%s) Time to Live: %s", d.Id(), err)
+		return err
 	}
-	if err := d.Set("ttl", flattenDynamoDbTtl(ttlOut)); err != nil {
-		return fmt.Errorf("error setting ttl: %s", err)
+	if ttlOut.TimeToLiveDescription != nil {
+		err := d.Set("ttl", flattenDynamoDbTtl(ttlOut.TimeToLiveDescription))
+		if err != nil {
+			return err
+		}
 	}
 
 	tags, err := readDynamoDbTableTags(d.Get("arn").(string), conn)
@@ -699,25 +698,46 @@ func waitForDynamodbTableDeletion(conn *dynamodb.DynamoDB, tableName string, tim
 	return err
 }
 
-func updateDynamoDbTimeToLive(tableName string, ttlList []interface{}, conn *dynamodb.DynamoDB) error {
-	ttlMap := ttlList[0].(map[string]interface{})
+func updateDynamoDbTimeToLive(d *schema.ResourceData, conn *dynamodb.DynamoDB) error {
+	toBeEnabled := false
+	attributeName := ""
 
-	input := &dynamodb.UpdateTimeToLiveInput{
-		TableName: aws.String(tableName),
-		TimeToLiveSpecification: &dynamodb.TimeToLiveSpecification{
-			AttributeName: aws.String(ttlMap["attribute_name"].(string)),
-			Enabled:       aws.Bool(ttlMap["enabled"].(bool)),
-		},
+	o, n := d.GetChange("ttl")
+	newTtl, ok := n.(*schema.Set)
+	blockExists := ok && newTtl.Len() > 0
+
+	if blockExists {
+		ttlList := newTtl.List()
+		ttlMap := ttlList[0].(map[string]interface{})
+		attributeName = ttlMap["attribute_name"].(string)
+		toBeEnabled = ttlMap["enabled"].(bool)
+
+	} else if !d.IsNewResource() {
+		oldTtlList := o.(*schema.Set).List()
+		ttlMap := oldTtlList[0].(map[string]interface{})
+		attributeName = ttlMap["attribute_name"].(string)
+		toBeEnabled = false
 	}
 
-	log.Printf("[DEBUG] Updating DynamoDB Table (%s) Time To Live: %s", tableName, input)
-	if _, err := conn.UpdateTimeToLive(input); err != nil {
-		return fmt.Errorf("error updating DynamoDB Table (%s) Time To Live: %s", tableName, err)
-	}
+	if attributeName != "" {
+		_, err := conn.UpdateTimeToLive(&dynamodb.UpdateTimeToLiveInput{
+			TableName: aws.String(d.Id()),
+			TimeToLiveSpecification: &dynamodb.TimeToLiveSpecification{
+				AttributeName: aws.String(attributeName),
+				Enabled:       aws.Bool(toBeEnabled),
+			},
+		})
+		if err != nil {
+			if isAWSErr(err, "ValidationException", "TimeToLive is already disabled") {
+				return nil
+			}
+			return err
+		}
 
-	log.Printf("[DEBUG] Waiting for DynamoDB Table (%s) Time to Live update to complete", tableName)
-	if err := waitForDynamoDbTtlUpdateToBeCompleted(tableName, ttlMap["enabled"].(bool), conn); err != nil {
-		return fmt.Errorf("error waiting for DynamoDB Table (%s) Time To Live update: %s", tableName, err)
+		err = waitForDynamoDbTtlUpdateToBeCompleted(d.Id(), toBeEnabled, conn)
+		if err != nil {
+			return fmt.Errorf("Error waiting for DynamoDB TimeToLive to be updated: %s", err)
+		}
 	}
 
 	return nil

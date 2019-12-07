@@ -41,12 +41,13 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 				ForceNew: true,
 			},
 			"availability_zones": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
-				Removed:  "Use `preferred_availability_zones` argument instead",
+				Type:          schema.TypeSet,
+				Optional:      true,
+				ForceNew:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				Set:           schema.HashString,
+				ConflictsWith: []string{"preferred_availability_zones"},
+				Deprecated:    "Use `preferred_availability_zones` instead",
 			},
 			"az_mode": {
 				Type:     schema.TypeString,
@@ -164,6 +165,7 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ConflictsWith: []string{
+					"availability_zones",
 					"az_mode",
 					"engine_version",
 					"engine",
@@ -385,6 +387,12 @@ func resourceAwsElasticacheClusterCreate(d *schema.ResourceData, meta interface{
 
 	if v, ok := d.GetOk("preferred_availability_zones"); ok && len(v.([]interface{})) > 0 {
 		req.PreferredAvailabilityZones = expandStringList(v.([]interface{}))
+	} else {
+		preferred_azs := d.Get("availability_zones").(*schema.Set).List()
+		if len(preferred_azs) > 0 {
+			azs := expandStringList(preferred_azs)
+			req.PreferredAvailabilityZones = azs
+		}
 	}
 
 	id, err := createElasticacheCacheCluster(conn, req)
