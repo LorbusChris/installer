@@ -219,8 +219,9 @@ func (Etcd) SwaggerDoc() map[string]string {
 }
 
 var map_EtcdList = map[string]string{
-	"":      "KubeAPISOperatorConfigList is a collection of items",
-	"items": "Items contains the items",
+	"":         "KubeAPISOperatorConfigList is a collection of items",
+	"metadata": "Standard object's metadata.",
+	"items":    "Items contains the items",
 }
 
 func (EtcdList) SwaggerDoc() map[string]string {
@@ -229,7 +230,7 @@ func (EtcdList) SwaggerDoc() map[string]string {
 
 var map_EndpointPublishingStrategy = map[string]string{
 	"":             "EndpointPublishingStrategy is a way to publish the endpoints of an IngressController, and represents the type and any additional configuration for a specific type.",
-	"type":         "type is the publishing strategy to use. Valid values are:\n\n* LoadBalancerService\n\nPublishes the ingress controller using a Kubernetes LoadBalancer Service.\n\nIn this configuration, the ingress controller deployment uses container networking. A LoadBalancer Service is created to publish the deployment.\n\nSee: https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer\n\nIf domain is set, a wildcard DNS record will be managed to point at the LoadBalancer Service's external name. DNS records are managed only in DNS zones defined by dns.config.openshift.io/cluster .spec.publicZone and .spec.privateZone.\n\nWildcard DNS management is currently supported only on the AWS, Azure, and GCP platforms.\n\n* HostNetwork\n\nPublishes the ingress controller on node ports where the ingress controller is deployed.\n\nIn this configuration, the ingress controller deployment uses host networking, bound to node ports 80 and 443. The user is responsible for configuring an external load balancer to publish the ingress controller via the node ports.\n\n* Private\n\nDoes not publish the ingress controller.\n\nIn this configuration, the ingress controller deployment uses container networking, and is not explicitly published. The user must manually publish the ingress controller.",
+	"type":         "type is the publishing strategy to use. Valid values are:\n\n* LoadBalancerService\n\nPublishes the ingress controller using a Kubernetes LoadBalancer Service.\n\nIn this configuration, the ingress controller deployment uses container networking. A LoadBalancer Service is created to publish the deployment.\n\nSee: https://kubernetes.io/docs/concepts/services-networking/#loadbalancer\n\nIf domain is set, a wildcard DNS record will be managed to point at the LoadBalancer Service's external name. DNS records are managed only in DNS zones defined by dns.config.openshift.io/cluster .spec.publicZone and .spec.privateZone.\n\nWildcard DNS management is currently supported only on the AWS, Azure, and GCP platforms.\n\n* HostNetwork\n\nPublishes the ingress controller on node ports where the ingress controller is deployed.\n\nIn this configuration, the ingress controller deployment uses host networking, bound to node ports 80 and 443. The user is responsible for configuring an external load balancer to publish the ingress controller via the node ports.\n\n* Private\n\nDoes not publish the ingress controller.\n\nIn this configuration, the ingress controller deployment uses container networking, and is not explicitly published. The user must manually publish the ingress controller.",
 	"loadBalancer": "loadBalancer holds parameters for the load balancer. Present only if type is LoadBalancerService.",
 	"hostNetwork":  "hostNetwork holds parameters for the HostNetwork endpoint publishing strategy. Present only if type is HostNetwork.",
 	"private":      "private holds parameters for the Private endpoint publishing strategy. Present only if type is Private.",
@@ -289,7 +290,6 @@ var map_IngressControllerStatus = map[string]string{
 	"endpointPublishingStrategy": "endpointPublishingStrategy is the actual strategy in use.",
 	"conditions":                 "conditions is a list of conditions and their status.\n\nAvailable means the ingress controller deployment is available and servicing route and ingress resources (i.e, .status.availableReplicas equals .spec.replicas)\n\nThere are additional conditions which indicate the status of other ingress controller features and capabilities.\n\n  * LoadBalancerManaged\n  - True if the following conditions are met:\n    * The endpoint publishing strategy requires a service load balancer.\n  - False if any of those conditions are unsatisfied.\n\n  * LoadBalancerReady\n  - True if the following conditions are met:\n    * A load balancer is managed.\n    * The load balancer is ready.\n  - False if any of those conditions are unsatisfied.\n\n  * DNSManaged\n  - True if the following conditions are met:\n    * The endpoint publishing strategy and platform support DNS.\n    * The ingress controller domain is set.\n    * dns.config.openshift.io/cluster configures DNS zones.\n  - False if any of those conditions are unsatisfied.\n\n  * DNSReady\n  - True if the following conditions are met:\n    * DNS is managed.\n    * DNS records have been successfully created.\n  - False if any of those conditions are unsatisfied.",
 	"tlsProfile":                 "tlsProfile is the TLS connection configuration that is in effect.",
-	"observedGeneration":         "observedGeneration is the most recent generation observed.",
 }
 
 func (IngressControllerStatus) SwaggerDoc() map[string]string {
@@ -332,8 +332,9 @@ func (KubeAPIServer) SwaggerDoc() map[string]string {
 }
 
 var map_KubeAPIServerList = map[string]string{
-	"":      "KubeAPIServerList is a collection of items",
-	"items": "Items contains the items",
+	"":         "KubeAPIServerList is a collection of items",
+	"metadata": "Standard object's metadata.",
+	"items":    "Items contains the items",
 }
 
 func (KubeAPIServerList) SwaggerDoc() map[string]string {
@@ -349,29 +350,13 @@ func (KubeControllerManager) SwaggerDoc() map[string]string {
 }
 
 var map_KubeControllerManagerList = map[string]string{
-	"":      "KubeControllerManagerList is a collection of items",
-	"items": "Items contains the items",
+	"":         "KubeControllerManagerList is a collection of items",
+	"metadata": "Standard object's metadata.",
+	"items":    "Items contains the items",
 }
 
 func (KubeControllerManagerList) SwaggerDoc() map[string]string {
 	return map_KubeControllerManagerList
-}
-
-var map_KubeStorageVersionMigrator = map[string]string{
-	"": "KubeStorageVersionMigrator provides information to configure an operator to manage kube-storage-version-migrator.",
-}
-
-func (KubeStorageVersionMigrator) SwaggerDoc() map[string]string {
-	return map_KubeStorageVersionMigrator
-}
-
-var map_KubeStorageVersionMigratorList = map[string]string{
-	"":      "KubeStorageVersionMigratorList is a collection of items",
-	"items": "Items contains the items",
-}
-
-func (KubeStorageVersionMigratorList) SwaggerDoc() map[string]string {
-	return map_KubeStorageVersionMigratorList
 }
 
 var map_AdditionalNetworkDefinition = map[string]string{
@@ -564,8 +549,9 @@ func (OpenShiftAPIServer) SwaggerDoc() map[string]string {
 }
 
 var map_OpenShiftAPIServerList = map[string]string{
-	"":      "OpenShiftAPIServerList is a collection of items",
-	"items": "Items contains the items",
+	"":         "OpenShiftAPIServerList is a collection of items",
+	"metadata": "Standard object's metadata.",
+	"items":    "Items contains the items",
 }
 
 func (OpenShiftAPIServerList) SwaggerDoc() map[string]string {
@@ -581,8 +567,9 @@ func (OpenShiftControllerManager) SwaggerDoc() map[string]string {
 }
 
 var map_OpenShiftControllerManagerList = map[string]string{
-	"":      "OpenShiftControllerManagerList is a collection of items",
-	"items": "Items contains the items",
+	"":         "OpenShiftControllerManagerList is a collection of items",
+	"metadata": "Standard object's metadata.",
+	"items":    "Items contains the items",
 }
 
 func (OpenShiftControllerManagerList) SwaggerDoc() map[string]string {
@@ -598,8 +585,9 @@ func (KubeScheduler) SwaggerDoc() map[string]string {
 }
 
 var map_KubeSchedulerList = map[string]string{
-	"":      "KubeSchedulerList is a collection of items",
-	"items": "Items contains the items",
+	"":         "KubeSchedulerList is a collection of items",
+	"metadata": "Standard object's metadata.",
+	"items":    "Items contains the items",
 }
 
 func (KubeSchedulerList) SwaggerDoc() map[string]string {
@@ -617,8 +605,9 @@ func (ServiceCA) SwaggerDoc() map[string]string {
 }
 
 var map_ServiceCAList = map[string]string{
-	"":      "ServiceCAList is a collection of items",
-	"items": "Items contains the items",
+	"":         "ServiceCAList is a collection of items",
+	"metadata": "Standard object's metadata.",
+	"items":    "Items contains the items",
 }
 
 func (ServiceCAList) SwaggerDoc() map[string]string {
@@ -634,8 +623,9 @@ func (ServiceCatalogAPIServer) SwaggerDoc() map[string]string {
 }
 
 var map_ServiceCatalogAPIServerList = map[string]string{
-	"":      "ServiceCatalogAPIServerList is a collection of items",
-	"items": "Items contains the items",
+	"":         "ServiceCatalogAPIServerList is a collection of items",
+	"metadata": "Standard object's metadata.",
+	"items":    "Items contains the items",
 }
 
 func (ServiceCatalogAPIServerList) SwaggerDoc() map[string]string {
@@ -651,8 +641,9 @@ func (ServiceCatalogControllerManager) SwaggerDoc() map[string]string {
 }
 
 var map_ServiceCatalogControllerManagerList = map[string]string{
-	"":      "ServiceCatalogControllerManagerList is a collection of items",
-	"items": "Items contains the items",
+	"":         "ServiceCatalogControllerManagerList is a collection of items",
+	"metadata": "Standard object's metadata.",
+	"items":    "Items contains the items",
 }
 
 func (ServiceCatalogControllerManagerList) SwaggerDoc() map[string]string {
