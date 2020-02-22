@@ -1,11 +1,12 @@
 package openstack
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	ignition "github.com/coreos/ignition/config/v2_4/types"
+	ignition "github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/gophercloud/gophercloud/openstack/imageservice/v2/imagedata"
 	"github.com/gophercloud/gophercloud/openstack/imageservice/v2/images"
 	"github.com/gophercloud/utils/openstack/clientconfig"
@@ -65,31 +66,31 @@ func generateIgnitionShim(userCA string, clusterID string, bootstrapConfigURL st
 	fileMode := 420
 
 	// Hostname Config
-	contents := fmt.Sprintf("%s-bootstrap", clusterID)
+	hostnameConfigContents := fmt.Sprintf("data:text/plain;base64,%s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s-bootstrap", clusterID))))
 
 	hostnameConfigFile := ignition.File{
 		Node: ignition.Node{
-			Filesystem: "root",
-			Path:       "/etc/hostname",
+			Path: "/etc/hostname",
 		},
 		FileEmbedded1: ignition.FileEmbedded1{
 			Mode: &fileMode,
 			Contents: ignition.FileContents{
-				Source: dataurl.EncodeBytes([]byte(contents)),
+				Source: &hostnameConfigContents,
 			},
 		},
 	}
 
 	// Openstack Ca Cert file
+	openstackCAContents := dataurl.EncodeBytes([]byte(userCA))
+
 	openstackCAFile := ignition.File{
 		Node: ignition.Node{
-			Filesystem: "root",
-			Path:       "/opt/openshift/tls/cloud-ca-cert.pem",
+			Path: "/opt/openshift/tls/cloud-ca-cert.pem",
 		},
 		FileEmbedded1: ignition.FileEmbedded1{
 			Mode: &fileMode,
 			Contents: ignition.FileContents{
-				Source: dataurl.EncodeBytes([]byte(userCA)),
+				Source: &openstackCAContents,
 			},
 		},
 	}
@@ -117,9 +118,9 @@ func generateIgnitionShim(userCA string, clusterID string, bootstrapConfigURL st
 			Version:  ignition.MaxVersion.String(),
 			Security: security,
 			Config: ignition.IgnitionConfig{
-				Append: []ignition.ConfigReference{
+				Merge: []ignition.ConfigReference{
 					{
-						Source:      bootstrapConfigURL,
+						Source:      &bootstrapConfigURL,
 						HTTPHeaders: headers,
 					},
 				},

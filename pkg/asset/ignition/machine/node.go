@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/url"
 
-	ignition "github.com/coreos/ignition/config/v2_2/types"
+	ignition "github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/vincent-petithory/dataurl"
 
 	"github.com/openshift/installer/pkg/types"
@@ -40,18 +40,20 @@ func pointerIgnitionConfig(installConfig *types.InstallConfig, rootCA []byte, ro
 			ignitionHost = net.JoinHostPort(installConfig.VSphere.APIVIP, "22623")
 		}
 	}
+
+	mergeSourceURL := url.URL{
+		Scheme: "https",
+		Host:   ignitionHost,
+		Path:   fmt.Sprintf("/config/%s", role),
+	}
+	mergeSource := mergeSourceURL.String()
+
 	return &ignition.Config{
 		Ignition: ignition.Ignition{
 			Version: ignition.MaxVersion.String(),
 			Config: ignition.IgnitionConfig{
-				Append: []ignition.ConfigReference{{
-					Source: func() *url.URL {
-						return &url.URL{
-							Scheme: "https",
-							Host:   ignitionHost,
-							Path:   fmt.Sprintf("/config/%s", role),
-						}
-					}().String(),
+				Merge: []ignition.ConfigReference{{
+					Source: &mergeSource,
 				}},
 			},
 			Security: ignition.Security{
