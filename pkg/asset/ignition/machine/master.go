@@ -1,9 +1,9 @@
 package machine
 
 import (
-	"encoding/json"
 	"os"
 
+	"github.com/clarketm/json"
 	igntypes "github.com/coreos/ignition/v2/config/v3_0/types"
 	"github.com/pkg/errors"
 

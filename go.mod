@@ -23,6 +23,7 @@ require (
 	github.com/btubbs/datetime v0.1.1 // indirect
 	github.com/c4milo/gotoolkit v0.0.0-20190525173301-67483a18c17a // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
+	github.com/clarketm/json v1.13.4
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/etcd v3.3.18+incompatible // indirect
 	github.com/coreos/go-systemd v0.0.0-20191111152658-2d78030078ef // indirect

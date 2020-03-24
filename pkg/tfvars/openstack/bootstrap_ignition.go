@@ -2,10 +2,10 @@ package openstack
 
 import (
 	b64 "encoding/base64"
-	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/clarketm/json"
 	ignition "github.com/coreos/ignition/v2/config/v3_0/types"
 	"github.com/gophercloud/gophercloud/openstack/objectstorage/v1/containers"
 	"github.com/gophercloud/gophercloud/openstack/objectstorage/v1/objects"
