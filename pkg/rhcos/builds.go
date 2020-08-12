@@ -51,7 +51,7 @@ type metadata struct {
 }
 
 func fetchRHCOSBuild(ctx context.Context, arch types.Architecture) (*metadata, error) {
-	file, err := data.Assets.Open(fmt.Sprintf("rhcos-%s.json", arch))
+	file, err := data.Assets.Open(fmt.Sprintf("fcos-%s.json", arch))
 	if err != nil {
 		return nil, err
 	}
